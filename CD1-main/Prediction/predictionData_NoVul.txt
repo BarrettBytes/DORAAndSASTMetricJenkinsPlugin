@@ -1,0 +1,12 @@
+Num_vulnerabilities = 18
+Num_vulnerabilities = 18
+Num_vulnerabilities = 19
+Num_vulnerabilities = 19
+Num_vulnerabilities = 18
+Num_vulnerabilities = 12
+Num_vulnerabilities = 12
+Num_vulnerabilities = 0
+Num_vulnerabilities = 0
+Num_vulnerabilities = 36
+Num_vulnerabilities = 36
+Num_vulnerabilities = 36

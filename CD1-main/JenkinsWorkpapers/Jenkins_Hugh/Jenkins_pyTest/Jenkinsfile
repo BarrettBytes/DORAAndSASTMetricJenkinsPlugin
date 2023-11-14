@@ -1,0 +1,32 @@
+pipeline{
+    agent any
+    environment {
+        PATH = "/opt/homebrew/bin:$PATH"
+    }
+    stages{
+        stage("start") {
+            steps {
+                dir('testProjectCodes') {
+                    // Change the current working directory to 'testProjectCodes'
+                    sh 'python3 main.py'
+                }
+            }
+        }
+        stage("build"){
+            steps{
+                    echo "building"
+            }
+        }
+        stage("test"){
+                steps{
+                    echo "doing some testing here"
+                }
+        }
+        stage("deploy"){
+                steps{
+                    echo "deploying"
+                }
+        }
+    }
+}
+

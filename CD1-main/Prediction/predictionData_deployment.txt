@@ -1,0 +1,12 @@
+deployment_frequency = 13
+deployment_frequency = 11
+deployment_frequency = 12
+deployment_frequency = 14
+deployment_frequency = 8
+deployment_frequency = 11
+deployment_frequency = 6
+deployment_frequency = 0
+deployment_frequency = 2
+deployment_frequency = 0
+deployment_frequency = 0
+deployment_frequency = 1

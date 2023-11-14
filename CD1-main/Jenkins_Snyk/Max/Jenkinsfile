@@ -1,0 +1,32 @@
+pipeline { 
+
+  agent any
+
+  stages { 
+
+        stage('Download'){ 
+            steps{ 
+                echo "downloading data" 
+                git branch: 'main', credentialsId: 'uniGithub_Hugh', url: 'https://github.cs.adelaide.edu.au/SEP-CD/CD1.git'
+            } 
+        } 
+        stage('Build') { 
+        steps { 
+            echo 'Building...' 
+        } 
+        } 
+        stage('Test') { 
+        steps { 
+            dir('testProjectCodes') {  // Modify this to be the directory you wish to scan
+                echo 'Testing...' 
+                snykSecurity snykInstallation: 'Snyk Security', snykTokenId: 'test'
+            } 
+        } 
+        } 
+        stage('Deploy') { 
+            steps { 
+                echo 'Deploying...' 
+            } 
+        } 
+    } 
+} 

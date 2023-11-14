@@ -1,0 +1,100 @@
+
+Testing /Users/JiahaoLU/CD1/PythonPlantsVsZombies...
+
+Tested 12 dependencies for known issues, found 34 issues, 34 vulnerable paths.
+
+
+Issues to fix by upgrading dependencies:
+
+  Upgrade django@1.8.19 to django@3.2.22 to fix
+  ✗ Directory Traversal [Low Severity][https://security.snyk.io/vuln/SNYK-PYTHON-DJANGO-1066259] in django@1.8.19
+    introduced by django@1.8.19
+  ✗ Directory Traversal [Low Severity][https://security.snyk.io/vuln/SNYK-PYTHON-DJANGO-1279042] in django@1.8.19
+    introduced by django@1.8.19
+  ✗ Directory Traversal [Low Severity][https://security.snyk.io/vuln/SNYK-PYTHON-DJANGO-2329158] in django@1.8.19
+    introduced by django@1.8.19
+  ✗ Information Exposure [Low Severity][https://security.snyk.io/vuln/SNYK-PYTHON-DJANGO-2329159] in django@1.8.19
+    introduced by django@1.8.19
+  ✗ Access Restriction Bypass [Medium Severity][https://security.snyk.io/vuln/SNYK-PYTHON-DJANGO-2312875] in django@1.8.19
+    introduced by django@1.8.19
+  ✗ Denial of Service (DoS) [Medium Severity][https://security.snyk.io/vuln/SNYK-PYTHON-DJANGO-2329160] in django@1.8.19
+    introduced by django@1.8.19
+  ✗ Cross-site Scripting (XSS) [Medium Severity][https://security.snyk.io/vuln/SNYK-PYTHON-DJANGO-2389002] in django@1.8.19
+    introduced by django@1.8.19
+  ✗ Open Redirect [Medium Severity][https://security.snyk.io/vuln/SNYK-PYTHON-DJANGO-42178] in django@1.8.19
+    introduced by django@1.8.19
+  ✗ Arbitrary File Upload [Medium Severity][https://security.snyk.io/vuln/SNYK-PYTHON-DJANGO-5496950] in django@1.8.19
+    introduced by django@1.8.19
+  ✗ Regular Expression Denial of Service (ReDoS) (new) [Medium Severity][https://security.snyk.io/vuln/SNYK-PYTHON-DJANGO-5932095] in django@1.8.19
+    introduced by django@1.8.19
+  ✗ Content Spoofing [Medium Severity][https://security.snyk.io/vuln/SNYK-PYTHON-DJANGO-72888] in django@1.8.19
+    introduced by django@1.8.19
+  ✗ HTTP Header Injection [High Severity][https://security.snyk.io/vuln/SNYK-PYTHON-DJANGO-1290072] in django@1.8.19
+    introduced by django@1.8.19
+  ✗ Directory Traversal [High Severity][https://security.snyk.io/vuln/SNYK-PYTHON-DJANGO-1298665] in django@1.8.19
+    introduced by django@1.8.19
+  ✗ Denial of Service (DoS) [High Severity][https://security.snyk.io/vuln/SNYK-PYTHON-DJANGO-2389021] in django@1.8.19
+    introduced by django@1.8.19
+  ✗ Reflected File Download (RFD) [High Severity][https://security.snyk.io/vuln/SNYK-PYTHON-DJANGO-2968205] in django@1.8.19
+    introduced by django@1.8.19
+  ✗ Denial of Service (DoS) [High Severity][https://security.snyk.io/vuln/SNYK-PYTHON-DJANGO-3319450] in django@1.8.19
+    introduced by django@1.8.19
+  ✗ SQL Injection [High Severity][https://security.snyk.io/vuln/SNYK-PYTHON-DJANGO-559326] in django@1.8.19
+    introduced by django@1.8.19
+  ✗ Regular Expression Denial of Service (ReDoS) [High Severity][https://security.snyk.io/vuln/SNYK-PYTHON-DJANGO-5750790] in django@1.8.19
+    introduced by django@1.8.19
+  ✗ Denial of Service (DoS) [High Severity][https://security.snyk.io/vuln/SNYK-PYTHON-DJANGO-5880505] in django@1.8.19
+    introduced by django@1.8.19
+  ✗ SQL Injection [Critical Severity][https://security.snyk.io/vuln/SNYK-PYTHON-DJANGO-2606966] in django@1.8.19
+    introduced by django@1.8.19
+  ✗ SQL Injection [Critical Severity][https://security.snyk.io/vuln/SNYK-PYTHON-DJANGO-2606969] in django@1.8.19
+    introduced by django@1.8.19
+  ✗ SQL Injection [Critical Severity][https://security.snyk.io/vuln/SNYK-PYTHON-DJANGO-2940618] in django@1.8.19
+    introduced by django@1.8.19
+
+  Upgrade flask@0.10.1 to flask@2.2.5 to fix
+  ✗ Improper Input Validation [High Severity][https://security.snyk.io/vuln/SNYK-PYTHON-FLASK-42185] in flask@0.10.1
+    introduced by flask@0.10.1
+  ✗ Denial of Service (DoS) [High Severity][https://security.snyk.io/vuln/SNYK-PYTHON-FLASK-451637] in flask@0.10.1
+    introduced by flask@0.10.1
+  ✗ Information Exposure [High Severity][https://security.snyk.io/vuln/SNYK-PYTHON-FLASK-5490129] in flask@0.10.1
+    introduced by flask@0.10.1
+
+  Upgrade requests@2.18.1 to requests@2.31.0 to fix
+  ✗ Information Exposure [Medium Severity][https://security.snyk.io/vuln/SNYK-PYTHON-REQUESTS-5595532] in requests@2.18.1
+    introduced by requests@2.18.1
+  ✗ Information Exposure [Critical Severity][https://security.snyk.io/vuln/SNYK-PYTHON-REQUESTS-72435] in requests@2.18.1
+    introduced by requests@2.18.1
+
+  Upgrade sqlalchemy@1.1.11 to sqlalchemy@1.2.18 to fix
+  ✗ SQL Injection [High Severity][https://security.snyk.io/vuln/SNYK-PYTHON-SQLALCHEMY-173678] in sqlalchemy@1.1.11
+    introduced by sqlalchemy@1.1.11
+
+  Pin urllib3@1.21.1 to urllib3@1.26.17 to fix
+  ✗ Regular Expression Denial of Service (ReDoS) [Medium Severity][https://security.snyk.io/vuln/SNYK-PYTHON-URLLIB3-1533435] in urllib3@1.21.1
+    introduced by requests@2.18.1 > urllib3@1.21.1
+  ✗ Information Exposure Through Sent Data (new) [Medium Severity][https://security.snyk.io/vuln/SNYK-PYTHON-URLLIB3-5926907] in urllib3@1.21.1
+    introduced by requests@2.18.1 > urllib3@1.21.1
+  ✗ Authentication Bypass [Medium Severity][https://security.snyk.io/vuln/SNYK-PYTHON-URLLIB3-72681] in urllib3@1.21.1
+    introduced by requests@2.18.1 > urllib3@1.21.1
+  ✗ HTTP Header Injection [High Severity][https://security.snyk.io/vuln/SNYK-PYTHON-URLLIB3-1014645] in urllib3@1.21.1
+    introduced by requests@2.18.1 > urllib3@1.21.1
+  ✗ CRLF injection [High Severity][https://security.snyk.io/vuln/SNYK-PYTHON-URLLIB3-174323] in urllib3@1.21.1
+    introduced by requests@2.18.1 > urllib3@1.21.1
+  ✗ Improper Certificate Validation [High Severity][https://security.snyk.io/vuln/SNYK-PYTHON-URLLIB3-174464] in urllib3@1.21.1
+    introduced by requests@2.18.1 > urllib3@1.21.1
+
+
+
+Organization:      khiyaba
+Package manager:   pip
+Target file:       Requirements.txt
+Project name:      PythonPlantsVsZombies
+Open source:       no
+Project path:      /Users/JiahaoLU/CD1/PythonPlantsVsZombies
+Licenses:          enabled
+
+Tip: Try `snyk fix` to address these issues.`snyk fix` is a new CLI command in that aims to automatically apply the recommended updates for supported ecosystems.
+See documentation on how to enable this beta feature: https://docs.snyk.io/snyk-cli/fix-vulnerabilities-from-the-cli/automatic-remediation-with-snyk-fix#enabling-snyk-fix
+
+

@@ -1,0 +1,358 @@
+pipeline {
+    agent {
+        label 'my-agent-label'
+    }
+
+    environment {
+        SNYK_TOKEN = '50b15e06-0453-4c5c-ad25-942a6808536e' 
+        // Extract the IP or hostname from the JENKINS_URL
+        JENKINS_HOST = new URL(env.JENKINS_URL).getHost()
+
+    }
+
+  
+        stages { 
+        stage('apt update if ubuntu') {
+            steps {
+                    script {
+                        if (isUnix() && sh(script: 'command -v apt', returnStatus: true) == 0) {
+                        timeout(time: 1, unit: 'MINUTES') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                                    sh '''
+                                        sudo apt update
+                                    '''
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        stage('Setup Environment') {
+                steps {
+                    retry(3) {
+                    script {
+                        // Check if the system is Ubuntu
+                        if (isUnix() && sh(script: 'command -v apt', returnStatus: true) == 0) {
+                            echo "Ubuntu detected. Installing Docker using apt."
+                            sh '''
+                                sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
+                                curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+                                sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+                                sudo apt update
+                                sudo apt install -y docker-ce
+                            '''
+                        } else if (sh(script: 'command -v yum', returnStatus: true) == 0) {
+                            echo "Amazon Linux detected. Installing Docker using yum."
+                            sh '''
+                                sudo yum update -y
+                                sudo yum install -y docker
+                                sudo systemctl start docker
+                                sudo systemctl enable docker
+                            '''
+                        } else {
+                            error "Unsupported OS. Cannot install Docker."
+                        }
+                    }
+                }
+            }
+        }
+
+            
+        stage('Check Docker Status') {
+            steps {
+                script {
+                    // Check if Docker is running
+                    def status = sh(script: 'sudo docker info', returnStatus: true)
+                    if (status != 0) {
+                        echo "Docker is not running. Attempting to start Docker."
+                        sh 'sudo dockerd &'
+                        sleep 10  // Give Docker a few seconds to start
+                    }
+                }
+            }
+        }
+            
+    stage('Check PythonPlantsVsZombies in Docker') {
+        steps {
+            script {
+                // Run a Docker command to check if the PythonPlantsVsZombies directory exists inside the container
+                def dirExists = sh(script: 'docker run --rm -v $(pwd):/workspace -w /workspace custom-node-snyk-image sh -c "[ -d PythonPlantsVsZombies ] && echo exists || echo not exists"', returnStdout: true).trim()
+                if (dirExists == "exists") {
+                    echo "PythonPlantsVsZombies directory exists inside the Docker container."
+                    // Print the file structure of the directory inside the Docker container
+                    sh 'docker run --rm -v $(pwd):/workspace -w /workspace custom-node-snyk-image sh -c "ls -la PythonPlantsVsZombies"'
+                } else {
+                    echo "PythonPlantsVsZombies directory does not exist inside the Docker container."
+                }
+            }
+        }
+    }
+
+
+            
+        stage('Setup Docker Environment') {
+            steps {
+                withCredentials([string(credentialsId: 'SUDO_PASS', variable: 'SUDO_PASS')]) {
+                    script {
+                        def dockerfileContent = """
+                        FROM node:14
+                        RUN npm install -g snyk@1.1226.0
+                        """
+                        writeFile file: 'Dockerfile', text: dockerfileContent
+                        sh 'echo $SUDO_PASS | sudo -S docker build -t custom-node-snyk-image -f Dockerfile .'
+                    }
+                }
+            }
+        }
+
+        stage('Create Branch') {
+            steps {
+                sh '''
+                    if git rev-parse --verify feature/update-date >/dev/null 2>&1; then
+                        git checkout feature/update-date
+                    else
+                        git checkout -b feature/update-date
+                    fi
+                '''
+            }
+        }
+
+      stage('Create Fake Issues 50% of the time') {
+        steps {
+            script {
+                // Generate a random number between 0 and 100
+                def randomNumber = new Random().nextInt(100)
+
+                // Check if the random number is less than 50 (50% chance)
+                if (randomNumber < 50) {
+                    sh '''
+                        docker run --rm -v $(pwd):/workspace -w /workspace custom-node-snyk-image sh -c "
+                            cd PythonPlantsVsZombies
+                            cat <<EOF > package.json
+                            {
+                                \\"dependencies\\": {
+                                    \\"lodash\\": \\"4.17.15\\"
+                                }
+                            }
+                        "
+                    '''
+                } else {
+                   sh '''
+                        docker run --rm -v $(pwd):/workspace -w /workspace custom-node-snyk-image sh -c "
+                            cd PythonPlantsVsZombies
+                            cat <<EOF > package.json
+                            {}
+                            }
+                        "
+                    '''
+                    echo "Skipped creating fake issues this time."
+                }
+            }
+        }
+    }
+            
+  stage('Debug: Print package.json + npm install') {
+    steps {
+        script {
+            def result = sh(script: '''
+                docker run --rm -v $(pwd):/workspace -w /workspace custom-node-snyk-image sh -c "
+                    cd PythonPlantsVsZombies
+                    npm install
+                "
+            ''', returnStatus: true)
+            
+            if (result == 0) {
+                echo "npm install was successful"
+            } else {
+                echo "npm install failed"
+            }
+            
+            sh '''
+                docker run --rm -v $(pwd):/workspace -w /workspace custom-node-snyk-image sh -c "
+                    cd PythonPlantsVsZombies
+                    cat package.json
+                "
+            '''
+        }
+    }
+}
+
+        stage('Run Snyk Test First Time') {
+            steps {
+                script {
+                    // Capture the start time
+                    def startTime = System.currentTimeMillis()
+
+                    sh '''
+                        docker run --rm -v $(pwd):/workspace -w /workspace -e SNYK_TOKEN=${SNYK_TOKEN} custom-node-snyk-image sh -c "
+                            cd PythonPlantsVsZombies
+                            snyk auth ${SNYK_TOKEN}
+                            snyk test --all-projects --debug > snyk_test_output.txt
+                            exit 0  
+                        "
+                    '''
+
+                    // Calculate the duration in seconds
+                    def duration = (System.currentTimeMillis() - startTime) / 1000
+                    echo "First Snyk scan took ${duration} seconds"
+                    env.SNYK_SCAN_DURATION= "${duration}"
+                }
+            }
+        }
+
+        stage('Display Snyk Output') {
+            steps {
+                sh '''
+                    ls -la
+                    [ -f PythonPlantsVsZombies/snyk_test_output.txt ] || touch PythonPlantsVsZombies/snyk_test_output.txt
+                    cat PythonPlantsVsZombies/snyk_test_output.txt
+                '''
+            }
+        }
+                    
+        stage('Push Results to Pushgateway') {
+            steps {
+                script {
+                    // Check if there are any vulnerabilities detected
+                    def vulnerabilitiesDetected = sh(script: """
+                        grep -qE '\\[(Low|Medium|High|Critical) Severity\\]' PythonPlantsVsZombies/snyk_test_output.txt
+                    """, returnStatus: true) == 0
+
+                    if (!vulnerabilitiesDetected) {
+                        echo "No vulnerabilities detected. Skipping the rest of the stage."
+                        return
+                    }
+                    // Parse the snyk_output.txt file to extract severity ratings
+                    def ratings = sh(script: """
+                        grep -oE '\\[(Low|Medium|High|Critical) Severity\\]' PythonPlantsVsZombies/snyk_test_output.txt | cut -d'[' -f2 | cut -d' ' -f1 | sort | uniq -c
+                    """, returnStdout: true).trim()
+
+                    // Initialize counters for each severity
+                    def totalVulnerabilities = ['Low': 0, 'Medium': 0, 'High': 0, 'Critical': 0]
+
+                    // Update the counters based on the parsed ratings
+                    ratings.split("\n").each { line ->
+                        def (count, rating) = line.split()
+                        totalVulnerabilities[rating] += count.toInteger()
+                    }
+
+                    // Initialize a global counter for metric pushes
+                    def globalCounter = 0
+
+                    // Push individual and total counts for each severity to Pushgateway
+                    totalVulnerabilities.each { rating, count ->
+                        echo "Pushing ${rating} vulnerabilities count: ${count}"
+                        sh """
+                            echo "snyk_vulnerabilities_${globalCounter}{severity=\\"${rating}\\", instance=\\"${env.NODE_NAME}\\"} ${count}" | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/snyk_scan
+                        """
+                        globalCounter++
+                    }
+
+                    // Push the Snyk scan duration to Pushgateway
+                    echo "Pushing Snyk scan duration: ${env.SNYK_SCAN_DURATION} seconds"
+                    sh """
+                        echo "snyk_scan_duration_seconds_${globalCounter}{instance=\\"${env.NODE_NAME}\\"} ${env.SNYK_SCAN_DURATION}" | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/snyk_scan
+                    """
+                    globalCounter++
+
+                    // Extract the names of all the issues associated with their severity level and push them to Pushgateway
+                    ['Low', 'Medium', 'High', 'Critical'].each { severity ->
+                        def issues = sh(script: """
+                            grep -oE "✗ [^\\\\[]+ \\\\[${severity} Severity\\\\]" PythonPlantsVsZombies/snyk_test_output.txt | awk -F '✗ ' '{print \$2}' | awk -F ' \\\\[${severity}' '{print \$1}' | tr '\n' ','
+                        """, returnStdout: true).trim()
+
+                        if (issues) {
+                            echo "Pushing ${severity} vulnerabilities: ${issues}"
+                            sh """
+                                echo "snyk_issues_${globalCounter}{severity=\\"${severity}\\", issues=\\"${issues}\\", instance=\\"${env.NODE_NAME}\\"} 1" | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/snyk_scan
+                            """
+                            globalCounter++
+                        }
+                    }
+                }
+            }
+        }
+            
+        // This will fail when the fake issues are generated
+        stage('Fail if vulnerable') {
+            steps {
+                script {
+
+                    // Check if there are any vulnerabilities detected
+                    def vulnerabilitiesDetected = sh(script: """
+                        grep -qE '\\[(Low|Medium|High|Critical) Severity\\]' PythonPlantsVsZombies/snyk_test_output.txt
+                    """, returnStatus: true) == 0
+
+                    if (vulnerabilitiesDetected) {
+                        echo "failed due to vulnerabilities being detected."
+                        exit 1
+                    }
+                }
+            }
+        }
+            
+       stage('Copy to Production / Merge') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'Test', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                    sh '''
+                        git config credential.helper 'store --file=.git/credentials'
+                        echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au" > .git/credentials
+
+                        # Checkout the feature branch
+                        git checkout feature/update-date
+
+                        if [ ! -d "production" ]; then
+                            mkdir production
+                        fi
+
+                        if [ -d "PythonPlantsVsZombies" ]; then
+                            # Check if package.json or package-lock.json exists inside PythonPlantsVsZombies and remove them
+                            if [ -f "PythonPlantsVsZombies/package.json" ]; then
+                                echo "package.json detected inside PythonPlantsVsZombies. Removing it before copying to production."
+                                rm PythonPlantsVsZombies/package.json
+                            fi
+
+                            if [ -f "PythonPlantsVsZombies/package-lock.json" ]; then
+                                echo "package-lock.json detected inside PythonPlantsVsZombies. Removing it before copying to production."
+                                rm PythonPlantsVsZombies/package-lock.json
+                            fi
+
+                            cp -r PythonPlantsVsZombies/* production/
+
+                            # Modify a text document with the current time
+                            echo "last commit: $(date)" > production/last_commit.txt
+
+                            git add production/
+                            git commit -m "Copy PythonPlantsVsZombies to production directory and update last_commit.txt"
+
+                            # Checkout main and merge the feature branch
+                            git checkout main
+                            git pull origin main
+                            git merge feature/update-date --no-ff --strategy-option theirs -m "Merge feature/update-date into main"
+                            git push origin main
+                        else
+                            echo "Error: PythonPlantsVsZombies directory not found!"
+                            exit 1
+                        fi
+                    '''
+                }
+            }
+        }
+
+        stage('Send Deployment Frequency') {
+            steps {
+                script {
+                    // Count the number of merges to the main branch
+                    def mergeCount = sh(script: 'git log --oneline --merges --since="1 day ago" origin/main | wc -l', returnStdout: true).trim()
+
+                    // Send this count to gateway
+                    sh  """
+                        echo 'git_deployment_frequency_daily ${mergeCount}' | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/git_metrics
+                     """
+
+                }
+            }
+        }
+    }
+}

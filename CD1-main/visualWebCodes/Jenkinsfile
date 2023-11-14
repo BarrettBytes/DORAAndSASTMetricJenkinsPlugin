@@ -1,0 +1,48 @@
+pipeline {
+   agent any 
+   
+   // Ideally we can have this acually installed in the git hub directory
+   stages {
+       stage('Setup') {
+           steps {
+               withCredentials([string(credentialsId: 'SUDO_PASS', variable: 'SUDO_PASS')]) {
+                   sh '''
+                   echo "$SUDO_PASS" | sudo -S yum update
+                   echo "$SUDO_PASS" | sudo -S yum install -y nodejs npm
+                   '''
+               }
+           }
+       }
+       
+       // The following lines navigate to the folder and compile the test java file
+      // adjust sleep to keep it open on the port for longer
+       stage('Build') {
+           steps {
+               echo 'Building...'
+               sh 'make --version'
+               sh '''
+               cd visualWebCodes
+               npm install
+               npm start &
+               sleep 1000
+               '''
+           }
+       }
+      
+       // The following lines run the built script
+       stage('Test') {
+           steps {
+               echo 'Testing...'
+               sh '''
+               curl http://localhost:3000/
+               '''
+           }
+       }
+       
+       stage('Deploy') {
+           steps {
+               echo 'Deploying...'
+           }
+       }
+   }
+}

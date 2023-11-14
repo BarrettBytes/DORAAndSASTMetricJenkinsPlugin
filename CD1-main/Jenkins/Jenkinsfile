@@ -1,0 +1,32 @@
+// Pipeline Script
+pipeline {
+   agent any 
+ 
+    stages {
+        stage('Build') {
+            steps {
+                echo 'Building...'
+                sh 'make --version'
+               // Change the current working directory to 'Jenkins' (adapted from Hugh's code)
+                dir('Jenkins') {
+                    sh 'javac hello_world.java'
+                }
+             }
+        }
+        stage('Test') {
+            steps {
+                // The following lines run the built script
+                echo 'Testing...'
+                dir('Jenkins') {
+                    sh 'java A'
+                }
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Deploying...'
+            }
+        }
+    }
+}
+

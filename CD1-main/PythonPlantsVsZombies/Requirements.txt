@@ -1,0 +1,28 @@
+matplotlib 
+networkx
+pygame==2.5.2
+requests
+PILLOW
+numpy
+scikit-learn
+urllib3
+six
+jinja2
+pendulum
+opencv-python
+
+#reinserted vulnerabilities
+# Flask 0.10.1 (Known vulnerabilities in the past)
+Flask==0.10.1
+
+# Django 1.8.19 (Known vulnerabilities in the past)
+Django==1.8.19
+
+# Requests 2.18.1 (Known vulnerabilities in the past)
+requests==2.18.1
+
+# Pillow 4.2.1 (Known vulnerabilities in the past)
+# Pillow==4.2.1
+
+# SQLAlchemy 1.1.11 (Known vulnerabilities in the past)
+SQLAlchemy==1.1.11

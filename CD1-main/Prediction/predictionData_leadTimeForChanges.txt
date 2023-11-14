@@ -1,0 +1,7 @@
+leadTimeForChange = 220
+leadTimeForChange = 220
+leadTimeForChange = 140
+leadTimeForChange = 1010
+leadTimeForChange = 520
+leadTimeForChange = 480
+leadTimeForChange = 480

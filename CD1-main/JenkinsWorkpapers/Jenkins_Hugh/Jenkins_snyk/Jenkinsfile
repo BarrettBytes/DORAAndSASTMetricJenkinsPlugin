@@ -1,0 +1,45 @@
+pipeline { 
+    agent any
+
+    stages { 
+        stage('Download'){ 
+            steps{ 
+                echo "downloading data" 
+                git branch: 'main', credentialsId: 'uniGithub_Hugh', url: 'https://github.cs.adelaide.edu.au/SEP-CD/CD1.git'
+            } 
+        } 
+
+        stage('Build') { 
+            steps { 
+                echo 'Building...' 
+            } 
+        } 
+
+        stage('Test') { 
+            steps { 
+                dir('testProjectCodes') { 
+//                     sh '/opt/homebrew/bin/snyk test --json > snyk-results.json'
+                    echo 'Testing...' 
+                    snykSecurity snykInstallation: 'Snyk Security', snykTokenId: 'SnykTokenHugh'
+                } 
+            } 
+        } 
+
+        stage('Deploy') { 
+            steps { 
+                echo 'Deploying...' 
+            } 
+        } 
+    }
+
+//     post {
+//         always {
+//             steps {
+//                 script {
+//                     // 执行 Docker 命令
+//                     sh 'docker run -d -p9532:9532 --name snyk_exporter quay.io/lunarway/snyk_exporter --snyk.api-token c1b1c438-3274-4697-adbd-02576a16cbf2 --log.level="info" --snyk.organization=0971f52f-bca0-404f-97a7-6e79f507e0ef'
+//                 }
+//             }
+//         }
+//     } 
+}

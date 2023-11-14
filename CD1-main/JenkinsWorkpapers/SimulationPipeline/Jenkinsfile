@@ -1,0 +1,729 @@
+pipeline {
+    agent any
+
+    environment {
+        SNYK_TOKEN = '50b15e06-0453-4c5c-ad25-942a6808536e'
+        // Extract the IP or hostname from the JENKINS_URL
+        JENKINS_HOST = new URL(env.JENKINS_URL).getHost()
+    }
+
+    stages {
+        stage('Determine Agent') {
+            steps {
+                script {
+                    if (isUnix()) {
+                        if (sh(script: 'command -v apt', returnStatus: true) == 0) {
+                            env.AGENT_LABEL = 'my-agent-label'
+                        } else if (sh(script: 'command -v brew', returnStatus: true) == 0) {
+                            env.AGENT_LABEL = 'NodeHugh'
+                        } else {
+                            env.AGENT_LABEL = 'unknown-agent'
+                        }
+                    } else {
+                        env.AGENT_LABEL = 'unknown-agent'
+                    }
+                }
+            }
+        }
+            // should add clear caches
+            // sudo rm -r /var/jenkins/workspaces
+
+        stage('update package manager') {
+            steps {
+                script {
+                    if (isUnix()) {
+                        // Check if the system is Ubuntu
+                        def osType = sh(script: 'uname', returnStdout: true).trim()
+                        if (osType == "Darwin") {
+                            timeout(time: 1, unit: 'MINUTES') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                                    sh 'brew update'
+                                }
+                            }
+                        }
+                        else if (sh(script: 'command -v apt', returnStatus: true) == 0) {
+                            timeout(time: 1, unit: 'MINUTES') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                                    sh 'sudo apt update'
+                                }
+                            }
+                        }
+                        else {
+                            error "Unsupported operating system"
+                        }
+                    } else {
+                        error "Unsupported operating system"
+                    }
+
+                }
+            }
+        }
+
+
+        stage('Setup Environment') {
+            steps{
+                // retry(3) {
+                    script {
+                        // Check if the system is Ubuntu
+                        def installDocker = {
+                            if (sh(script: 'command -v apt', returnStatus: true) == 0) {
+                                // Check if Docker is installed
+                                if (sh(script: 'docker --version', returnStatus: true) != 0) {
+                                    echo "Docker is not installed. Installing Docker using apt."
+                                echo "Ubuntu detected. Installing Docker using apt."
+                                sh '''
+                                    sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
+                                    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+                                    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+                                    sudo apt update
+                                    sudo apt install -y docker-ce
+                                    sudo service docker start
+                                '''
+                                }
+                            } else if (sh(script: 'command -v yum', returnStatus: true) == 0) {
+                                echo "Amazon Linux detected. Installing Docker using yum."
+                                sh '''
+                                    sudo yum update -y
+                                    sudo yum install -y docker
+                                    sudo systemctl start docker
+                                    sudo systemctl enable docker
+                                '''
+                            }else {
+                                // error "Unsupported OS. Cannot install Docker."
+                                echo "Unsupported OS. Cannot install Docker."
+                            }
+                        }
+                        def osType = sh(script: 'uname', returnStdout: true).trim()
+                        if (osType == "Darwin") {
+                            def brewInstalled = sh(script: 'command -v brew', returnStatus: true) == 0
+                            if (!brewInstalled) {
+                                echo "Homebrew not detected. Installing Homebrew first."
+                                sh '''
+                                    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+                                '''
+                            }
+                            if (sh(script: 'command -v brew', returnStatus: true) == 0) {
+                                echo "Homebrew installed. Installing Docker using brew."
+                                sh '''
+                                    brew install --cask docker
+                                '''
+                            } 
+                            else {
+                                echo "Failed to install Homebrew. You are not using MacOs."
+                            }
+                        }else{
+                            retry(3, { installDocker() })
+                        }
+
+                    }
+                }
+
+            }
+        
+        stage('Configure Docker Builder') {
+            steps {
+                script {
+                    sh 'export DOCKER_CLI_ACI=0'
+                }
+            }
+        }
+
+            
+        stage('Check Docker Status') {
+            steps {
+                script {
+                    // Check if Docker is running
+                    echo "Check Docker Status"
+
+                    def status = sh(script: 'sudo docker info', returnStatus: true)
+                    if (status != 0) {
+                        def osType = sh(script: 'uname', returnStdout: true).trim()
+                        if (osType == "Darwin") {
+                            echo "Docker is not running. Attempting to start Docker Desktop."
+                            // Open Docker Desktop using AppleScript
+                            sh 'osascript -e \'tell application "Docker" to activate\''
+                            sleep 10  // Give Docker a few seconds to start
+                        }
+                        else{
+                            echo "Docker is not running. Attempting to start Docker."
+                            sh 'sudo dockerd &'
+                            sleep 10  // Give Docker a few seconds to start
+                        }
+
+                    }
+                }
+            }
+        }
+
+        // Commented to notice that this should be changed, but not needed for now
+                stage('Setup Docker Environment for Python') {
+            steps {
+                script {
+                    def osType = sh(script: 'uname', returnStdout: true).trim()
+                    if (osType != "Darwin") {
+                        // Add the Jenkins agent user to the docker group
+                        sh 'sudo usermod -aG docker $USER'
+                        sh 'sudo service docker restart'
+                    }
+                    if (osType == "Darwin") {
+                        def pythonCheck = sh(script: 'python3 --version', returnStatus: true)
+                        if (pythonCheck != 0) {
+                            echo 'Python not found, installing...'
+                            sh  
+                            '''
+                                brew install python3
+                            '''
+                        } else {
+                            echo 'Python already installed.'
+                        }
+                        def pipCheck = sh(script: 'pip --version', returnStatus: true)
+                        if (pipCheck != 0) {
+                            echo 'pip3 not found, installing...'
+                            sh '''
+                                curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+                                python3 get-pip.py
+                            '''
+                        } else {
+                            echo 'pip3 already installed.'
+                        }
+                        sh 'docker pull python:3.11' 
+                        def dockerfileContent = """
+                            # Start with a Node.js base image
+                            FROM node:16.14 AS node-base
+
+                            # Clear npm cache and install required global npm packages
+                            RUN npm cache clean -f && npm install -g pnpm snyk@1.1229.0
+
+                            # Switch to a Python image for Python-specific tasks
+                            FROM python:3.11
+
+                            # Copy other files and perform additional setup if needed
+                            COPY PythonPlantsVsZombies/Requirements.txt /workspace/PythonPlantsVsZombies/Requirements.txt
+
+                            # Install necessary packages
+                            RUN python3 -m venv /workspace/PythonPlantsVsZombies/myenv
+                            RUN /bin/bash -c "source /workspace/PythonPlantsVsZombies/myenv/bin/activate && pip install -r /workspace/PythonPlantsVsZombies/Requirements.txt"
+
+                        """
+                        writeFile file: 'Dockerfile', text: dockerfileContent
+                        sh 'sudo -S docker build -t custom-python-snyk-image -f Dockerfile .'
+                    } else {
+                        // Linux setup - You can keep your existing Linux Docker setup here
+                        def dockerfileContent = """
+                            # Start with a Node.js base image
+                            FROM node:16.14 AS node-base
+
+                            # Clear npm cache
+                            RUN npm cache clean -f
+
+                            # Install required global npm packages
+                            RUN npm install -g pnpm snyk@1.1229.0
+
+                            # Switch to a Python image for Python-specific tasks
+                            FROM python:3.11
+                            
+                            # Install nodejs and npm to install snyk
+                            RUN apt-get update && apt-get install -y python3-venv nodejs npm
+
+                            # Install snyk using npm
+                            RUN npm install -g snyk@1.1229.0
+
+                            # Install venv module
+                            RUN apt-get update && apt-get install -y python3-venv
+
+                            # Set up a virtual environment
+                            RUN python3 -m venv /workspace/PythonPlantsVsZombies/myenv
+
+                            # Activate the virtual environment and install Python dependencies
+                            COPY PythonPlantsVsZombies/Requirements.txt /workspace/PythonPlantsVsZombies/Requirements.txt
+                            RUN /bin/bash -c "source /workspace/PythonPlantsVsZombies/myenv/bin/activate && pip install -r /workspace/PythonPlantsVsZombies/Requirements.txt"
+
+
+                        """
+                        writeFile file: 'Dockerfile', text: dockerfileContent
+                        sh 'echo $SUDO_PASS | sudo -S docker build -t custom-python-snyk-image -f Dockerfile .'
+                    }
+                }
+            }
+        }
+        
+       /*   stage('Build Docker Image') {
+            steps {
+                script {
+                    def osType = sh(script: 'uname', returnStdout: true).trim()
+                    if (osType != "Darwin") {
+                        sh 'docker build -t custom-python-snyk-image -f Dockerfile .'
+                    }
+                }
+            }
+        } */
+
+        stage('Check PythonPlantsVsZombies in Docker') {
+            steps {
+                script {
+                    def osType = sh(script: 'uname', returnStdout: true).trim()
+                    if (osType != "Darwin") {
+                    // Run a Docker command to check if the PythonPlantsVsZombies directory exists inside the container
+                        def dirExists = sh(script: 'echo $SUDO_PASS | sudo -S docker run --rm -v $(pwd):/workspace -w /workspace custom-python-snyk-image sh -c "[ -d PythonPlantsVsZombies ] && echo exists || echo not exists"', returnStdout: true).trim()
+                        if (dirExists == "exists") {
+                            echo "PythonPlantsVsZombies directory exists inside the Docker container."
+                            // Print the file structure of the directory inside the Docker container
+                            sh 'echo $SUDO_PASS | sudo -S docker run --rm -v $(pwd):/workspace -w /workspace custom-python-snyk-image sh -c "ls -la PythonPlantsVsZombies"'
+                        } else {
+                            echo "PythonPlantsVsZombies directory does not exist inside the Docker container."
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Create Branch') {
+            steps {
+                sh '''
+                    if git rev-parse --verify feature/update-date >/dev/null 2>&1; then
+                        git checkout feature/update-date
+                    else
+                        git checkout -b feature/update-date
+                    fi
+                '''
+            }
+        }
+
+        stage('Run Snyk Test First Time') {
+            steps {
+                script {
+                    def osType = sh(script: 'uname', returnStdout: true).trim()
+                    if (osType == "Darwin"){
+                         // Capture the start time
+                        def startTime = System.currentTimeMillis()
+                           sh '''
+                            docker run --rm -v $(pwd):/workspace -w /workspace -e SNYK_TOKEN=${SNYK_TOKEN} custom-python-snyk-image sh -c "
+                                cd PythonPlantsVsZombies
+                                python3 -m venv myenv
+                                source myenv/bin/activate
+                                pip install -r Requirements.txt
+                                snyk auth ${SNYK_TOKEN}
+                                snyk test --package-manager=pip --file=Requirements.txt > snyk_test_output.txt                          
+                                cat snyk_test_output.txt
+                                exit 0
+                            "
+                        '''
+
+                        // Calculate the duration in seconds
+                        def duration = (System.currentTimeMillis() - startTime) / 1000
+                        echo "First Snyk scan took ${duration} seconds"
+                        env.SNYK_SCAN_DURATION= "${duration}"
+                    }else{
+                        // Capture the start time
+                        def startTime = System.currentTimeMillis()
+                        sh '''
+                            echo $SUDO_PASS | sudo -S docker run --rm -v $(pwd):/workspace -w /workspace -e SNYK_TOKEN=${SNYK_TOKEN} custom-python-snyk-image sh -c "
+                                cd PythonPlantsVsZombies
+                                 python3 -m venv myenv
+                                source myenv/bin/activate
+                                pip install -r Requirements.txt
+                                snyk auth ${SNYK_TOKEN}
+                                snyk test --package-manager=pip --file=Requirements.txt > snyk_test_output.txt                          
+                                cat snyk_test_output.txt
+                                exit 0
+                            "
+                        '''
+
+                        // Calculate the duration in seconds
+                        def duration = (System.currentTimeMillis() - startTime) / 1000
+                        echo "First Snyk scan took ${duration} seconds"
+                        env.SNYK_SCAN_DURATION= "${duration}"
+                    }
+
+                }
+            }
+        }
+
+        stage('Display Snyk Output') {
+            steps {
+                sh '''
+                    ls -la
+                    [ -f PythonPlantsVsZombies/snyk_test_output.txt ] || touch PythonPlantsVsZombies/snyk_test_output.txt
+                    cat PythonPlantsVsZombies/snyk_test_output.txt
+                '''
+            }
+        }
+
+        stage('Push Results to Pushgateway') {
+            steps {
+                script {
+                    // Initialize a global counter for metric pushes
+                    def globalCounter = 0
+                    
+                    // Check if there are any vulnerabilities detected
+                    def vulnerabilitiesDetected = sh(script: """
+                        grep -qE '\\[(Low|Medium|High|Critical) Severity\\]' PythonPlantsVsZombies/snyk_test_output.txt
+                    """, returnStatus: true) == 0
+
+                     // Initialize counters for each severity
+                    def totalVulnerabilities = ['Low': 0, 'Medium': 0, 'High': 0, 'Critical': 0]
+                    
+                    if (!vulnerabilitiesDetected) {
+                        echo "No vulnerabilities detected."
+                    } else { 
+                    
+                    // Parse the snyk_output.txt file to extract severity ratings
+                    def ratings = sh(script: """
+                        grep -oE '\\[(Low|Medium|High|Critical) Severity\\]' PythonPlantsVsZombies/snyk_test_output.txt | cut -d'[' -f2 | cut -d' ' -f1 | sort | uniq -c
+                    """, returnStdout: true).trim()
+
+                    // Update the counters based on the parsed ratings
+                    ratings.split("\n").each { line ->
+                        def (count, rating) = line.split()
+                        totalVulnerabilities[rating] += count.toInteger()
+                    }
+                     def issuesCounter = 0;
+                    // Extract the names of all the issues associated with their severity level and push them to Pushgateway
+                    ['Low', 'Medium', 'High', 'Critical'].each { severity ->
+                        def issues = sh(script: """
+                            grep -oE "✗ [^\\\\[]+ \\\\[${severity} Severity\\\\]" PythonPlantsVsZombies/snyk_test_output.txt | awk -F '✗ ' '{print \$2}' | awk -F ' \\\\[${severity}' '{print \$1}' | tr '\n' ','
+                        """, returnStdout: true).trim()
+
+                        if (issues) {
+                            echo "Pushing ${severity} vulnerabilities: ${issues}"
+                            sh """
+                                echo "snyk_issues_${issuesCounter}{severity=\\"${severity}\\", issues=\\"${issues}\\", instance=\\"${env.NODE_NAME}\\"} 1" | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/snyk_scan
+                            """
+                            issuesCounter++
+                            }
+                        }
+                    }
+                    // Push individual and total counts for each severity to Pushgateway
+                    totalVulnerabilities.each { rating, count ->
+                        echo "Pushing ${rating} vulnerabilities count: ${count}"
+                        sh """
+                            echo "snyk_vulnerabilities_${globalCounter}{severity=\\"${rating}\\", instance=\\"${env.NODE_NAME}\\"} ${count}" | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/snyk_scan
+                        """
+                        globalCounter++
+                    }
+                    
+                    // Define the weight mapping for each rating
+                    def weightMap = [
+                        'Low': 3.9,
+                        'Medium': 6.9,
+                        'High': 8.9,
+                        'Critical': 10
+                    ]
+
+                    def totalWeightedScore = 0
+
+                    // Calculate the weighted score for each severity
+                    totalVulnerabilities.each { rating, count ->
+                        // Calculate the weighted score
+                        def weightedScore = weightMap[rating] * count
+
+                        // Add the weighted score to the total
+                        totalWeightedScore += weightedScore
+
+                       }
+
+                    // Echo and push the total weighted score
+                    echo "Pushing total weighted score for vulnerabilities: ${totalWeightedScore}"
+                    sh """
+                        echo "snyk_total_vulnerabilities_weighted{instance=\\"${env.NODE_NAME}\\"} ${totalWeightedScore}" | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/snyk_scan
+                    """
+
+
+                    def syncScanDurationCounter = 0;
+                    // Push the Snyk scan duration to Pushgateway
+                    echo "Pushing Snyk scan duration: ${env.SNYK_SCAN_DURATION} seconds"
+                    sh """
+                        echo "snyk_scan_duration_seconds_${syncScanDurationCounter}{instance=\\"${env.NODE_NAME}\\"} ${env.SNYK_SCAN_DURATION}" | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/snyk_scan
+                    """
+                    syncScanDurationCounter++
+                    def mergeCount = sh(script: 'git log --oneline --merges --since="1 day ago" origin/main | wc -l', returnStdout: true).trim()
+                    def totalNumVulnerabilities = totalVulnerabilities['Low'] + totalVulnerabilities['Medium'] + totalVulnerabilities['High'] + totalVulnerabilities['Critical']
+                    def snykScanDuration = env.SNYK_SCAN_DURATION
+                    withCredentials([usernamePassword(credentialsId: 'Test', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                        sh """
+                            git config credential.helper 'store --file=.git/credentials'
+                            echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au" > .git/credentials
+                            
+                            # Checkout the feature branch
+                            git checkout feature/update-date
+
+                            if [ -d "Prediction" ]; then
+                                # append new data for prediction
+                                echo "deployment_frequency = ${mergeCount}, CVSSscores = ${totalWeightedScore}" >> Prediction/predictionData_deploymentCVSS.txt
+
+                                echo "Num_vulnerabilities = ${totalNumVulnerabilities}" >> Prediction/predictionData_NoVul.txt
+                                
+                                echo "deployment_frequency = ${mergeCount}" >> Prediction/predictionData_deployment.txt
+                                echo "SAST_Runtime = ${snykScanDuration}" >> Prediction/predictionData_Runtime.txt
+                                git add Prediction/
+                                git commit -m "Append new data for prediction"
+                              
+                                # Checkout main and merge the feature branch
+                                 #   git checkout main
+                                 #   git pull origin main
+                                 #   git merge feature/update-date --no-ff --strategy-option theirs -m "Merge feature/update-date into main"
+                                 #   git push origin main
+                                else
+                                  echo "Error: Prediction directory not found!"
+                              exit 1
+                                fi
+                        """
+  
+                    }
+                }
+            }
+        }
+                    
+      stage('Send Deployment Frequency Commits to Python Plants Vs Zombies') {
+            steps {
+                script {
+
+                    // Count the number of commits affecting the PythonPlantsVsZombies directory across all branches in the past day
+                    def commitCountInDir = sh(script: 'git log --oneline --all --since="1 day ago" -- PythonPlantsVsZombies/ | wc -l', returnStdout: true).trim()
+
+                    // Send this commit count to gateway
+                    sh  """
+                        echo 'git_commit_frequency_daily_PythonPlantsVsZombies ${commitCountInDir}' | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/git_metrics
+                    """
+                }
+            }
+        }
+       
+        stage('Send Deployment Frequency') {
+            steps {
+                script {
+                    // Count the number of merges to the main branch
+                    def mergeCount = sh(script: 'git log --oneline --merges --since="1 day ago" origin/main | wc -l', returnStdout: true).trim()
+
+                    // Send this count to gateway
+                    sh  """
+                        echo 'git_deployment_frequency_daily ${mergeCount}' | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/git_metrics
+                     """
+                }
+            }
+        }
+
+        stage('Predict based on the current data') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'Test', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                           def osType = sh(script: 'uname', returnStdout: true).trim()
+                        if (osType != "Darwin"){ sh '''
+                            git config credential.helper 'store --file=.git/credentials'
+                            echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au" > .git/credentials
+
+                            git checkout feature/update-date
+
+                            if [ -d "Prediction" ]; then
+                                echo $SUDO_PASS | sudo -S docker run --rm -v $(pwd):/workspace -w /workspace -e SNYK_TOKEN=${SNYK_TOKEN} custom-python-snyk-image sh -c "
+                                    cd Prediction
+                                    python3 -m venv myenv
+                                    source myenv/bin/activate
+                                    pip install numpy
+                                    pip install matplotlib
+                                    python3 -u plotGraph.py
+                                    python3 -u plotDeploymentFrequency.py
+                                    python3 -u plotLeadTime.py
+                                    python3 -u plotNoVul.py
+                                    python3 -u plotRuntime.py
+                                    python3 -u plotTestPassRate.py
+                                "
+                                git add Prediction/
+                                git commit -m "Push the prediction picture to the github"
+
+                                git checkout main
+                                git pull origin main
+                                git merge feature/update-date --no-ff --strategy-option theirs -m "Merge feature/update-date into main"
+                                git push origin main
+                            else
+                                echo "Error: Prediction directory not found!"
+                                exit 1
+                            fi
+                        '''
+                                               } else {sh '''
+                            git config credential.helper 'store --file=.git/credentials'
+                            echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au" > .git/credentials
+
+                            git checkout feature/update-date
+
+                            if [ -d "Prediction" ]; then
+                                docker run --rm -v $(pwd):/workspace -w /workspace -e SNYK_TOKEN=${SNYK_TOKEN} custom-python-snyk-image sh -c "
+                                    cd Prediction
+                                    python3 -m venv myenv
+                                    source myenv/bin/activate
+                                    pip install numpy
+                                    pip install matplotlib
+                                    python3 -u plotGraph.py
+                                    python3 -u plotDeploymentFrequency.py
+                                    python3 -u plotLeadTime.py
+                                    python3 -u plotNoVul.py
+                                    python3 -u plotRuntime.py
+                                    python3 -u plotTestPassRate.py
+                                "
+                                git add Prediction/
+                                git commit -m "Push the prediction picture to the github"
+
+                                git checkout main
+                                git pull origin main
+                                git merge feature/update-date --no-ff --strategy-option theirs -m "Merge feature/update-date into main"
+                                git push origin main
+                            else
+                                echo "Error: Prediction directory not found!"
+                                exit 1
+                            fi
+                        '''
+                        }
+                        
+                    }
+                }
+            }
+        }
+               stage('Print Image URLS') {
+            steps {
+                script {
+
+
+                     // Get the current repository remote URL
+                                def repoURL = sh(script: "git config --get remote.origin.url", returnStdout: true).trim()
+
+                                // Convert the repository URL from SSH format to HTTPS format if necessary
+                                if (repoURL.startsWith("git@")) {
+                                    repoURL = repoURL.replace(":", "/").replace("git@", "https://").replace(".git", "")
+                                }
+                    
+                                // Remove any occurrence of ".git" from the URL
+                                repoURL = repoURL.replace(".git", "")
+
+                                // Fetch all PNG files in the directory
+                                def pngFiles = sh(script: "find Prediction -type f -name '*.png'", returnStdout: true).trim().split("\n")
+                                    
+                                // Print the URL for each PNG file
+                                pngFiles.each { file ->
+                                    echo "URL: ${repoURL}/blob/main/${file}"
+                                }
+                           
+                }
+            }
+        }
+        
+         // This will fail when the fake issues are generated
+        stage('Fail if vulnerable') {
+            steps {
+                script {
+
+                    // Check if there are any vulnerabilities detected
+                    def vulnerabilitiesDetected = sh(script: """
+                        grep -qE '\\[(Low|Medium|High|Critical) Severity\\]' PythonPlantsVsZombies/snyk_test_output.txt
+                    """, returnStatus: true) == 0
+
+                    if (vulnerabilitiesDetected) {
+                        echo "failed due to vulnerabilities being detected."
+                        exit 1
+                    }
+                }
+            }
+        } 
+        
+         stage('Copy to Production / Merge') {
+            steps {
+                script{
+                    def osType = sh(script: 'uname', returnStdout: true).trim()
+                    if (osType == "Darwin"){
+                        withCredentials([usernamePassword(credentialsId: 'Test', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                                        sh '''
+                                            git config credential.helper 'store --file=.git/credentials'
+                                            echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au" > .git/credentials
+
+                                            # Checkout the feature branch
+                                            git checkout feature/update-date
+
+                                            if [ ! -d "Production" ]; then
+                                                mkdir Production
+                                            fi
+
+                                            if [ -d "PythonPlantsVsZombies" ]; then
+                                                # Check if package.json or package-lock.json exists inside PythonPlantsVsZombies and remove them
+                                                if [ -f "PythonPlantsVsZombies/package.json" ]; then
+                                                    echo "package.json detected inside PythonPlantsVsZombies. Removing it before copying to production."
+                                                    rm PythonPlantsVsZombies/package.json
+                                                fi
+
+                                                if [ -f "PythonPlantsVsZombies/package-lock.json" ]; then
+                                                    echo "package-lock.json detected inside PythonPlantsVsZombies. Removing it before copying to production."
+                                                    rm PythonPlantsVsZombies/package-lock.json
+                                                fi
+
+                                                rm -r Production/* && cp -r PythonPlantsVsZombies/* Production/
+
+                                            
+
+                                                # Modify a text document with the current time
+                                                echo "last commit: $(date)" > Production/last_commit.txt
+
+                                                git add Production/
+                                                git commit -m "Copy PythonPlantsVsZombies to Production directory and update last_commit.txt"
+
+                                                # Checkout main and merge the feature branch
+                                                git checkout main
+                                                git pull origin main
+                                                git merge feature/update-date --no-ff --strategy-option theirs -m "Merge feature/update-date into main"
+                                                git push origin main
+                                            else
+                                                echo "Error: PythonPlantsVsZombies directory not found!"
+                                                exit 1
+                                            fi
+                                        '''
+                                    }
+                    }else{
+                        withCredentials([usernamePassword(credentialsId: 'Test', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                                        sh '''
+                                            git config credential.helper 'store --file=.git/credentials'
+                                            echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au" > .git/credentials
+
+                                            # Checkout the feature branch
+                                            git checkout feature/update-date
+
+                                            if [ ! -d "Production" ]; then
+                                                mkdir Production
+                                            fi
+
+                                            if [ -d "PythonPlantsVsZombies" ]; then
+                                                # Check if package.json or package-lock.json exists inside PythonPlantsVsZombies and remove them
+                                                if [ -f "PythonPlantsVsZombies/package.json" ]; then
+                                                    echo "package.json detected inside PythonPlantsVsZombies. Removing it before copying to production."
+                                                    rm PythonPlantsVsZombies/package.json
+                                                fi
+
+                                                if [ -f "PythonPlantsVsZombies/package-lock.json" ]; then
+                                                    echo "package-lock.json detected inside PythonPlantsVsZombies. Removing it before copying to production."
+                                                    rm PythonPlantsVsZombies/package-lock.json
+                                                fi
+
+                                                cp -r PythonPlantsVsZombies/* Production/
+
+                                            
+
+                                                # Modify a text document with the current time
+                                                echo "last commit: $(date)" > Production/last_commit.txt
+
+                                                git add Production/
+                                                git commit -m "Copy PythonPlantsVsZombies to Production directory and update last_commit.txt"
+
+                                                # Checkout main and merge the feature branch
+                                                git checkout main
+                                                git pull origin main
+                                                git merge feature/update-date --no-ff --strategy-option theirs -m "Merge feature/update-date into main"
+                                                git push origin main
+                                            else
+                                                echo "Error: PythonPlantsVsZombies directory not found!"
+                                                exit 1
+                                            fi
+                                        '''
+                                    }
+                    }
+                }
+            
+            }
+        }
+    }
+}

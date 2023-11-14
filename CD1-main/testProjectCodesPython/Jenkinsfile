@@ -1,0 +1,53 @@
+pipeline { 
+  agent { label 'Agent1' }
+  stages { 
+
+        // stage('Download'){ 
+
+        //     steps{ 
+
+        //         echo "downloading data" 
+
+        //         git branch: 'main', credentialsId: 'UNI_GITHUB', url: 'https://github.cs.adelaide.edu.au/SEP-CD/CD1.git'            } 
+
+        // } 
+
+        stage('Build') { 
+
+        steps { 
+
+            echo 'Building...' 
+
+        } 
+
+        } 
+
+        stage('Test') { 
+
+        steps { 
+
+            dir('testProject/Code') { 
+
+                echo 'Testing...' 
+                sh """
+                ls"""
+                // snykSecurity snykInstallation: 'Snyk Security', snykTokenId: 'd67e5a54-9b89-4c65-b2d6-cd788769dd3a'
+            } 
+
+        } 
+
+        } 
+
+        stage('Deploy') { 
+
+            steps { 
+
+                echo 'Deploying...' 
+
+            } 
+
+        } 
+
+    } 
+
+} 

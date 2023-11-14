@@ -1,0 +1,324 @@
+pipeline {
+    agent {
+        label 'my-agent-label'
+    }
+
+    environment {
+         SNYK_TOKEN = '50b15e06-0453-4c5c-ad25-942a6808536e' 
+    }
+
+  
+        stages { 
+              /*
+             stage('Sync System Clock') {
+            steps {
+                script {
+                  if (isUnix() && sh(script: 'command -v apt', returnStatus: true) == 0) {
+                    sh '''
+                        sudo apt install -y ntp
+                        sudo systemctl start ntp
+                        sudo systemctl enable ntp
+                        sleep 10  # Give it a few seconds to sync the time
+                    '''
+                  }
+                }
+            }
+        }
+
+        stage('Check Time Sync') {
+            steps {
+                script {
+                    if (isUnix() && sh(script: 'command -v apt', returnStatus: true) == 0) {
+                        def timeOffset = sh(script: "ntpq -c rv | grep -o 'offset=[-0-9.]*' | cut -d= -f2", returnStdout: true).trim()
+                        if (Math.abs(Float.parseFloat(timeOffset)) > 100) {  // Adjust the threshold as needed
+                            error "System clock is not synchronized. Offset is ${timeOffset}ms."
+                        }
+                    }
+                }
+            }
+        }
+        */
+    stage('apt update if ubuntu') {
+        steps {
+                script {
+                      if (isUnix() && sh(script: 'command -v apt', returnStatus: true) == 0) {
+                       timeout(time: 1, unit: 'MINUTES') {
+                            catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                                sh '''
+                                    sudo apt update
+                                '''
+                            }
+                        }
+                    }
+                 }
+             }
+        }
+
+    stage('Setup Environment') {
+            steps {
+                retry(3) {
+                script {
+                    // Check if the system is Ubuntu
+                    if (isUnix() && sh(script: 'command -v apt', returnStatus: true) == 0) {
+                        echo "Ubuntu detected. Installing Docker using apt."
+                        sh '''
+                            sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
+                            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+                            sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+                            sudo apt update
+                            sudo apt install -y docker-ce
+                        '''
+                    } else if (sh(script: 'command -v yum', returnStatus: true) == 0) {
+                        echo "Amazon Linux detected. Installing Docker using yum."
+                        sh '''
+                            sudo yum update -y
+                            sudo yum install -y docker
+                            sudo systemctl start docker
+                            sudo systemctl enable docker
+                        '''
+                    } else {
+                        error "Unsupported OS. Cannot install Docker."
+                    }
+                }
+            }
+        }
+    }
+
+            
+        stage('Check Docker Status') {
+            steps {
+                script {
+                    // Check if Docker is running
+                    def status = sh(script: 'sudo docker info', returnStatus: true)
+                    if (status != 0) {
+                        echo "Docker is not running. Attempting to start Docker."
+                        sh 'sudo dockerd &'
+                        sleep 10  // Give Docker a few seconds to start
+                    }
+                }
+            }
+        }
+    
+   /* stage('Install Docker') {
+        steps {
+              withCredentials([string(credentialsId: 'SUDO_PASS', variable: 'SUDO_PASS')]) {
+                sh '''
+                    echo $SUDO_PASS | sudo -S yum update -y
+                    echo $SUDO_PASS | sudo -S yum install -y docker
+                    echo $SUDO_PASS | sudo -S systemctl start docker
+                    echo $SUDO_PASS | sudo -S systemctl enable docker
+                '''
+            }
+        }
+    }
+*/
+            
+stage('Setup Docker Environment') {
+    steps {
+        withCredentials([string(credentialsId: 'SUDO_PASS', variable: 'SUDO_PASS')]) {
+            script {
+                def dockerfileContent = """
+                FROM node:14
+                RUN npm install -g snyk@1.1226.0
+                """
+                writeFile file: 'Dockerfile', text: dockerfileContent
+                sh 'echo $SUDO_PASS | sudo -S docker build -t custom-node-snyk-image -f Dockerfile .'
+            }
+        }
+    }
+}
+
+        stage('Create Branch') {
+            steps {
+                sh '''
+                    if git rev-parse --verify feature/update-date >/dev/null 2>&1; then
+                        git checkout feature/update-date
+                    else
+                        git checkout -b feature/update-date
+                    fi
+                '''
+            }
+        }
+
+
+                stage('Create or Update date.py') {
+            steps {
+                sh '''
+                     echo "print('$(date)')" > date.py
+                '''
+            }
+        }
+
+
+                 stage('Create or Update Files in scannable-directory') {
+            steps {
+                sh '''
+                    if [ ! -d "scannable-directory" ]; then
+                        mkdir -p scannable-directory
+                    fi
+                    echo 'print(\"'\"$(date)\"'\")' > scannable-directory/date.py
+                    echo 'print("Hello, World!")' > scannable-directory/hello.py
+                    echo 'password = "weak_password"' > scannable-directory/hello.py
+
+                '''
+            }
+        }
+        
+stage('Create Scannable Directory') {
+    steps {
+        sh '''
+            if [ ! -d "scannable-directory" ]; then
+                mkdir -p scannable-directory
+            fi
+            cp date.py scannable-directory/
+            docker run --rm -v $(pwd):/workspace -w /workspace custom-node-snyk-image sh -c "
+                cd scannable-directory
+                cat <<EOF > package.json
+                {
+                    \\"dependencies\\": {
+                        \\"lodash\\": \\"4.17.15\\"
+                    }
+                }
+            "
+        '''
+    }
+}
+
+stage('Debug: Print package.json + npm install') {
+    steps {
+        sh '''
+            docker run --rm -v $(pwd):/workspace -w /workspace custom-node-snyk-image sh -c "
+                cd scannable-directory
+                npm install
+                cat package.json
+            "
+        '''
+    }
+}
+
+/*
+stage('Run Snyk Test') {
+    steps {
+        sh '''
+            docker run --rm -v $(pwd):/workspace -w /workspace -e SNYK_TOKEN=${SNYK_TOKEN} custom-node-snyk-image sh -c "
+                cd scannable-directory
+                snyk auth ${SNYK_TOKEN}
+                snyk test --all-projects --debug
+                exit 0
+            "
+        '''
+    }
+}
+*/
+            
+// This will pass regardless if flaws are identified
+// if you remove exit 0 it will fail because of the security vulnerabilities, when we are testing this on a proper product
+// you will want it to fail on that result
+stage('Run Snyk Test') {
+    steps {
+        script {
+            // Capture the start time
+            def startTime = System.currentTimeMillis()
+
+            sh '''
+                docker run --rm -v $(pwd):/workspace -w /workspace -e SNYK_TOKEN=${SNYK_TOKEN} custom-node-snyk-image sh -c "
+                    cd scannable-directory
+                    snyk auth ${SNYK_TOKEN}
+                    snyk test --all-projects --debug > snyk_output.txt
+                    exit 0
+                "
+            '''
+
+            // Calculate the duration in seconds
+            def duration = (System.currentTimeMillis() - startTime) / 1000
+            echo "Snyk scan took ${duration} seconds"
+
+            // Store the duration in an environment variable for later use
+            env.SNYK_SCAN_DURATION = "${duration}"
+        }
+    }
+}
+
+
+stage('Display Snyk Output') {
+    steps {
+        sh '''
+            cat scannable-directory/snyk_test_output.txt
+        '''
+    }
+}
+            
+stage('Push Results to Pushgateway') {
+    steps {
+        script {
+            // Extract the IP or hostname from the JENKINS_URL
+            def jenkinsURL = new URL(env.JENKINS_URL)
+            def jenkinsHost = jenkinsURL.getHost()
+
+            // Parse the snyk_output.txt file to extract severity ratings
+            def ratings = sh(script: """
+                grep -oE '\\[(Low|Medium|High|Critical) Severity\\]' scannable-directory/snyk_output.txt | cut -d'[' -f2 | cut -d' ' -f1 | sort | uniq -c
+            """, returnStdout: true).trim()
+
+            // Initialize counters for each severity
+            def totalVulnerabilities = ['Low': 0, 'Medium': 0, 'High': 0, 'Critical': 0]
+
+            // Update the counters based on the parsed ratings
+            ratings.split("\n").each { line ->
+                def (count, rating) = line.split()
+                totalVulnerabilities[rating] += count.toInteger()
+            }
+
+            // Initialize a global counter for metric pushes
+            def globalCounter = 0
+
+            // Push individual and total counts for each severity to Pushgateway
+            totalVulnerabilities.each { rating, count ->
+                echo "Pushing ${rating} vulnerabilities count: ${count}"
+                sh """
+                    echo "snyk_vulnerabilities_${globalCounter}{severity=\\"${rating}\\", instance=\\"${env.NODE_NAME}\\"} ${count}" | curl --data-binary @- http://${jenkinsHost}:9091/metrics/job/snyk_scan
+                """
+                globalCounter++
+            }
+
+            // Push the Snyk scan duration to Pushgateway
+            echo "Pushing Snyk scan duration: ${env.SNYK_SCAN_DURATION} seconds"
+            sh """
+                echo "snyk_scan_duration_seconds_${globalCounter}{instance=\\"${env.NODE_NAME}\\"} ${env.SNYK_SCAN_DURATION}" | curl --data-binary @- http://${jenkinsHost}:9091/metrics/job/snyk_scan
+            """
+            globalCounter++
+
+            // Extract the names of all the issues associated with their severity level and push them to Pushgateway
+            ['Low', 'Medium', 'High', 'Critical'].each { severity ->
+                def issues = sh(script: """
+                    grep -oE "✗ [^\\\\[]+ \\\\[${severity} Severity\\\\]" scannable-directory/snyk_output.txt | awk -F '✗ ' '{print \$2}' | awk -F ' \\\\[${severity}' '{print \$1}' | tr '\n' ','
+                """, returnStdout: true).trim()
+
+                if (issues) {
+                    echo "Pushing ${severity} vulnerabilities: ${issues}"
+                    sh """
+                        echo "snyk_issues_${globalCounter}{severity=\\"${severity}\\", issues=\\"${issues}\\", instance=\\"${env.NODE_NAME}\\"} 1" | curl --data-binary @- http://${jenkinsHost}:9091/metrics/job/snyk_scan
+                    """
+                    globalCounter++
+                }
+            }
+        }
+    }
+}
+           
+        stage('Merge Branch') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'Test', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                    sh '''
+                        git config credential.helper 'store --file=.git/credentials'
+                        echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au" > .git/credentials
+                        git checkout main
+                        git pull origin main
+                        git merge feature/update-date
+                        git push origin main
+                    '''
+                }
+            }
+        }
+    }
+}

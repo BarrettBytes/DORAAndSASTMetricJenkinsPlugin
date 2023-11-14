@@ -1,0 +1,14 @@
+matplotlib 
+networkx
+pygame==2.5.2
+requests
+PILLOW
+numpy
+scikit-learn
+urllib3
+six
+boto3 
+botocore 
+jinja2
+pendulum
+opencv-python

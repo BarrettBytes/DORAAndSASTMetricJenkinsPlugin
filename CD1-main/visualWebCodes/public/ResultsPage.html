@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CI/CD Integration Tool</title>
+    <link rel="stylesheet" href="stylesheets/ResultsPage.css" type="text/css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@0.24.0/dist/axios.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+<body>
+    <header>
+        <h1 id="MainHeader">Test Results</h1>
+    </header>
+
+    <div id="app" class="container">
+        <div class="main">
+            <section class="results">
+                <h2>Deployment Frequency Chart:</h2>
+				<p> The deployment frequency charts show information about the deployment frequency to the production environment. 
+The environment must be part of the production deployment tier for its deployment information to appear on the graphs. </p>
+				<canvas class = "resultsGraph" id = "resultsGraphA"> </canvas>
+            </section>
+        </div>
+    </div>
+    <script>
+		const FillerData = {
+			datasets: [{
+				data: [10, 15, 10, 20, 33, 10],
+				label: 'Deployments',
+				borderColor: "rgb(255, 99, 132)",
+				fill: false
+				}],
+			labels: [10, 20, 30, 40, 50, 60]
+		}
+		
+		new Chart( document.getElementById('resultsGraphA').getContext('2d'), {
+			data: FillerData,
+			type: 'line'
+		});
+	</script>
+</body>
+
+</html>

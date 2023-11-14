@@ -1,0 +1,12 @@
+deployment_frequency = 13, CVSSscores = 148.4
+deployment_frequency = 11, CVSSscores = 148.4
+deployment_frequency = 12, CVSSscores = 155.3
+deployment_frequency = 14, CVSSscores = 155.3
+deployment_frequency = 8, CVSSscores = 145.3
+deployment_frequency = 11, CVSSscores = 94.8
+deployment_frequency = 6, CVSSscores = 94.8
+deployment_frequency = 0, CVSSscores = 0.0
+deployment_frequency = 2, CVSSscores = 0.0
+deployment_frequency = 0, CVSSscores = 280.8
+deployment_frequency = 0, CVSSscores = 280.8
+deployment_frequency = 1, CVSSscores = 280.8

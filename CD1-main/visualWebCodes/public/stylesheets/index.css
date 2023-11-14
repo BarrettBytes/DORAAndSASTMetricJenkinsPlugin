@@ -1,0 +1,75 @@
+body {
+    font-family: Arial, sans-serif;
+    background-image: linear-gradient(to right, #F2D763, #FF4F64);
+    background-size: cover;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    width: 100%;
+    padding: 2rem 0;
+    text-align: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10;
+}
+
+h1, h2 {
+    margin: 0;
+    color: #ffa2b2; 
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding-top: 5rem;
+}
+
+.main {
+    background-color: white;
+    padding: 3rem;
+    width: 90vw;
+    max-width: 1000px;
+    box-sizing: border-box;
+    text-align: center;
+    border-radius: 8px;
+}
+
+.choices, .githubImport {
+    margin-bottom: 2rem;
+}
+
+.sastChoice {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.githubInput {
+    width: 35%;
+    padding: 1rem;
+    margin-right: 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.1);
+}
+
+.importButton {
+    padding: 1rem 2rem;
+    background-color: #ffa2b2;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.importButton:hover {
+    background-color: #ff8ca3;
+}
+#MainHeader {
+    color: white;
+}
