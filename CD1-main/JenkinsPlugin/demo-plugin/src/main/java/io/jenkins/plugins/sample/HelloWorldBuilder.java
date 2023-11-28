@@ -573,19 +573,32 @@ public class HelloWorldBuilder extends Builder implements SimpleBuildStep {
 
         try {
             Jenkins jenkins = Jenkins.get();
-            WorkflowJob job = new WorkflowJob(jenkins, "MyUniquePipelineJob");
+        if (jenkins == null) {
+            listener.getLogger().println("Jenkins instance is null.");
+            return;
+        }
 
-            job.setDefinition(new CpsFlowDefinition(hardcodedScript, true));
-            job.scheduleBuild2(0);
-            listener.getLogger().println("Jenkinsfile executing as a Pipeline job.");
-            // Wait for the completion of the scheduled job
-            QueueTaskFuture<WorkflowRun> future = job.scheduleBuild2(0);
+        WorkflowJob job = (WorkflowJob) jenkins.getItemByFullName("MyUniquePipelineJob");
+        if (job == null) {
+            // Job doesn't exist, create it
+            job = new WorkflowJob(jenkins, "MyUniquePipelineJob");
+            jenkins.add(job, "MyUniquePipelineJob");
+        }
+        // Set or update the job definition
+        job.setDefinition(new CpsFlowDefinition(hardcodedScript, true));
 
-            WorkflowRun WorkflowRun = future.waitForStart();
+        listener.getLogger().println("Jenkinsfile executing as a Pipeline job.");
+        
+        // Schedule the job
+        job.scheduleBuild2(0);
+        
+        // Wait for the job to start
+        WorkflowRun workflowRun = job.scheduleBuild2(0).waitForStart();
 
-            while (WorkflowRun.getResult() == null) {
-                Thread.sleep(1000); // Sleep for 1 second before checking again
-            }
+        // Wait for the job to complete
+        while (workflowRun.getResult() == null) {
+            Thread.sleep(1000); // Sleep for 1 second before checking again
+        }
 
             // Get the console output of the completed job
             Run<?, ?> completedRun = ((Job<?, ?>) jenkins.getItemByFullName("MyUniquePipelineJob")).getLastBuild();

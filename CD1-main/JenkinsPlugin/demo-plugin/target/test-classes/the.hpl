@@ -4,7 +4,7 @@ Artifact-Id: demo
 Short-Name: demo
 Long-Name: TODO Plugin
 Url: https://github.com/jenkinsci/demo-plugin
-Plugin-Version: 1.0-SNAPSHOT (private-b2bc1063-khiya1)
+Plugin-Version: 1.0-SNAPSHOT (private-3b5aff87-khiya)
 Hudson-Version: 2.387.3
 Jenkins-Version: 2.387.3
 Plugin-Dependencies: workflow-cps:2.41,workflow-job:2.15,structs:1.23
@@ -14,11 +14,12 @@ Plugin-License-Url: https://opensource.org/license/mit/
 Plugin-ScmConnection: scm:git:https://github.com/jenkinsci/demo-plugin
 Plugin-ScmTag: HEAD
 Plugin-ScmUrl: https://github.com/jenkinsci/demo-plugin
-Plugin-GitHash: b2bc1063cc0f2822831df414504fc5a62d02503c
-Implementation-Build: b2bc1063cc0f2822831df414504fc5a62d02503c
-Libraries: /mnt/c/Users/khiya/Downloads/CD1-Proj/CD1-main/JenkinsPlugin/
- demo-plugin/src/main/resources,/mnt/c/Users/khiya/Downloads/CD1-Proj/CD
- 1-main/JenkinsPlugin/demo-plugin/target/classes
-Resource-Path: /mnt/c/Users/khiya/Downloads/CD1-Proj/CD1-main/JenkinsPlu
- gin/demo-plugin/src/main/webapp
+Plugin-GitHash: 3b5aff8795191c010f9908d24ad5080feeab6d1b
+Implementation-Build: 3b5aff8795191c010f9908d24ad5080feeab6d1b
+Libraries: /mnt/c/Users/khiya/OneDrive/Desktop/CDProj/DORAAndSASTMetricJ
+ enkinsPlugin/CD1-main/JenkinsPlugin/demo-plugin/src/main/resources,/mnt
+ /c/Users/khiya/OneDrive/Desktop/CDProj/DORAAndSASTMetricJenkinsPlugin/C
+ D1-main/JenkinsPlugin/demo-plugin/target/classes
+Resource-Path: /mnt/c/Users/khiya/OneDrive/Desktop/CDProj/DORAAndSASTMet
+ ricJenkinsPlugin/CD1-main/JenkinsPlugin/demo-plugin/src/main/webapp
 
