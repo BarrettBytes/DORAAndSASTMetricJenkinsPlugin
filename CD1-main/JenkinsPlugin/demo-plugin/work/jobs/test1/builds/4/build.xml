@@ -1,0 +1,1896 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-build plugin="workflow-job@1326.ve643e00e9220">
+  <actions>
+    <hudson.model.CauseAction>
+      <causeBag class="linked-hash-map">
+        <entry>
+          <hudson.model.Cause_-UserIdCause/>
+          <int>1</int>
+        </entry>
+      </causeBag>
+    </hudson.model.CauseAction>
+    <org.jenkinsci.plugins.workflow.libs.LibrariesAction plugin="pipeline-groovy-lib@689.veec561a_dee13">
+      <libraries/>
+    </org.jenkinsci.plugins.workflow.libs.LibrariesAction>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.ExecutionModelAction plugin="pipeline-model-definition@2.2150.v4cfd8916915c">
+      <stagesUUID>c6836679-8624-4291-8378-45b70645fbfd</stagesUUID>
+      <pipelineDefs>
+        <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTPipelineDef plugin="pipeline-model-api@2.2150.v4cfd8916915c">
+          <stages>
+            <stages>
+              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+                <name>Determine Agent</name>
+                <branches>
+                  <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                    <name>default</name>
+                    <steps>
+                      <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                        <name>script</name>
+                        <args class="org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTNamedArgumentList">
+                          <arguments class="linked-hash-map">
+                            <entry>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                                <key>scriptBlock</key>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                                <value class="string">if (isUnix()) {
+                        if (sh(script: &apos;command -v apt&apos;, returnStatus: true) == 0) {
+                            env.AGENT_LABEL = &apos;my-agent-label&apos;
+                        } else if (sh(script: &apos;command -v brew&apos;, returnStatus: true) == 0) {
+                            env.AGENT_LABEL = &apos;NodeHugh&apos;
+                        } else {
+                            env.AGENT_LABEL = &apos;unknown-agent&apos;
+                        }
+                    } else {
+                        env.AGENT_LABEL = &apos;unknown-agent&apos;
+                    }</value>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                            </entry>
+                          </arguments>
+                        </args>
+                      </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                    </steps>
+                  </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                </branches>
+              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+                <name>update package manager</name>
+                <branches>
+                  <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                    <name>default</name>
+                    <steps>
+                      <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                        <name>script</name>
+                        <args class="org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTNamedArgumentList">
+                          <arguments class="linked-hash-map">
+                            <entry>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                                <key>scriptBlock</key>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                                <value class="string">if (isUnix()) {
+                        // Check if the system is Ubuntu
+                        def osType = sh(script: &apos;uname&apos;, returnStdout: true).trim()
+                        if (osType == &quot;Darwin&quot;) {
+                            timeout(time: 1, unit: &apos;MINUTES&apos;) {
+                                catchError(buildResult: &apos;SUCCESS&apos;, stageResult: &apos;UNSTABLE&apos;) {
+                                    sh &apos;brew update&apos;
+                                }
+                            }
+                        }
+                        else if (sh(script: &apos;command -v apt&apos;, returnStatus: true) == 0) {
+                            timeout(time: 1, unit: &apos;MINUTES&apos;) {
+                                catchError(buildResult: &apos;SUCCESS&apos;, stageResult: &apos;UNSTABLE&apos;) {
+                                    sh &apos;sudo apt update&apos;
+                                }
+                            }
+                        }
+                        else {
+                            error &quot;Unsupported operating system&quot;
+                        }
+                    } else {
+                        error &quot;Unsupported operating system&quot;
+                    }</value>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                            </entry>
+                          </arguments>
+                        </args>
+                      </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                    </steps>
+                  </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                </branches>
+              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+                <name>Setup Environment</name>
+                <branches>
+                  <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                    <name>default</name>
+                    <steps>
+                      <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                        <name>script</name>
+                        <args class="org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTNamedArgumentList">
+                          <arguments class="linked-hash-map">
+                            <entry>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                                <key>scriptBlock</key>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                                <value class="string">def installDocker = {
+                            if (sh(script: &apos;command -v apt&apos;, returnStatus: true) == 0) {
+                                // Check if Docker is installed
+                                if (sh(script: &apos;docker --version&apos;, returnStatus: true) != 0) {
+                                    echo &quot;Docker is not installed. Installing Docker using apt.&quot;
+                                echo &quot;Ubuntu detected. Installing Docker using apt.&quot;
+                                sh &apos;&apos;&apos;
+                                    sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
+                                    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+                                    sudo add-apt-repository &quot;deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable&quot;
+                                    sudo apt update
+                                    sudo apt install -y docker-ce
+                                    sudo service docker start
+                                &apos;&apos;&apos;
+                                }
+                            } else if (sh(script: &apos;command -v yum&apos;, returnStatus: true) == 0) {
+                                echo &quot;Amazon Linux detected. Installing Docker using yum.&quot;
+                                sh &apos;&apos;&apos;
+                                    sudo yum update -y
+                                    sudo yum install -y docker
+                                    sudo systemctl start docker
+                                    sudo systemctl enable docker
+                                &apos;&apos;&apos;
+                            }else {
+                                // error &quot;Unsupported OS. Cannot install Docker.&quot;
+                                echo &quot;Unsupported OS. Cannot install Docker.&quot;
+                            }
+                        }
+                        def osType = sh(script: &apos;uname&apos;, returnStdout: true).trim()
+                        if (osType == &quot;Darwin&quot;) {
+                            def brewInstalled = sh(script: &apos;command -v brew&apos;, returnStatus: true) == 0
+                            if (!brewInstalled) {
+                                echo &quot;Homebrew not detected. Installing Homebrew first.&quot;
+                                sh &apos;&apos;&apos;
+                                    /bin/bash -c &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)&quot;
+                                &apos;&apos;&apos;
+                            }
+                            if (sh(script: &apos;command -v brew&apos;, returnStatus: true) == 0) {
+                                echo &quot;Homebrew installed. Installing Docker using brew.&quot;
+                                sh &apos;&apos;&apos;
+                                    brew install --cask docker
+                                &apos;&apos;&apos;
+                            } 
+                            else {
+                                echo &quot;Failed to install Homebrew. You are not using MacOs.&quot;
+                            }
+                        }else{
+                            retry(3, { installDocker() })
+                        }</value>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                            </entry>
+                          </arguments>
+                        </args>
+                      </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                    </steps>
+                  </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                </branches>
+              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+                <name>Configure Docker Builder</name>
+                <branches>
+                  <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                    <name>default</name>
+                    <steps>
+                      <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                        <name>script</name>
+                        <args class="org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTNamedArgumentList">
+                          <arguments class="linked-hash-map">
+                            <entry>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                                <key>scriptBlock</key>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                                <value class="string">sh &apos;export DOCKER_CLI_ACI=0&apos;</value>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                            </entry>
+                          </arguments>
+                        </args>
+                      </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                    </steps>
+                  </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                </branches>
+              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+                <name>Check Docker Status</name>
+                <branches>
+                  <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                    <name>default</name>
+                    <steps>
+                      <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                        <name>script</name>
+                        <args class="org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTNamedArgumentList">
+                          <arguments class="linked-hash-map">
+                            <entry>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                                <key>scriptBlock</key>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                                <value class="string">echo &quot;Check Docker Status&quot;
+
+                    def status = sh(script: &apos;sudo docker info&apos;, returnStatus: true)
+                    if (status != 0) {
+                        def osType = sh(script: &apos;uname&apos;, returnStdout: true).trim()
+                        if (osType == &quot;Darwin&quot;) {
+                            echo &quot;Docker is not running. Attempting to start Docker Desktop.&quot;
+                            // Open Docker Desktop using AppleScript
+                            sh &apos;osascript -e \&apos;tell application &quot;Docker&quot; to activate\&apos;&apos;
+                            sleep 10  // Give Docker a few seconds to start
+                        }
+                        else{
+                            echo &quot;Docker is not running. Attempting to start Docker.&quot;
+                            sh &apos;sudo dockerd &amp;&apos;
+                            sleep 10  // Give Docker a few seconds to start
+                        }
+
+                    }</value>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                            </entry>
+                          </arguments>
+                        </args>
+                      </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                    </steps>
+                  </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                </branches>
+              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+                <name>Setup Docker Environment for Python</name>
+                <branches>
+                  <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                    <name>default</name>
+                    <steps>
+                      <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                        <name>script</name>
+                        <args class="org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTNamedArgumentList">
+                          <arguments class="linked-hash-map">
+                            <entry>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                                <key>scriptBlock</key>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                                <value class="string">def osType = sh(script: &apos;uname&apos;, returnStdout: true).trim()
+                    if (osType != &quot;Darwin&quot;) {
+                        // Add the Jenkins agent user to the docker group
+                        sh &apos;sudo usermod -aG docker $USER&apos;
+                        sh &apos;sudo service docker restart&apos;
+                    }
+                    if (osType == &quot;Darwin&quot;) {
+                        def pythonCheck = sh(script: &apos;python3 --version&apos;, returnStatus: true)
+                        if (pythonCheck != 0) {
+                            echo &apos;Python not found, installing...&apos;
+                            sh  
+                            &apos;&apos;&apos;
+                                brew install python3
+                            &apos;&apos;&apos;
+                        } else {
+                            echo &apos;Python already installed.&apos;
+                        }
+                        def pipCheck = sh(script: &apos;pip --version&apos;, returnStatus: true)
+                        if (pipCheck != 0) {
+                            echo &apos;pip3 not found, installing...&apos;
+                            sh &apos;&apos;&apos;
+                                curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+                                python3 get-pip.py
+                            &apos;&apos;&apos;
+                        } else {
+                            echo &apos;pip3 already installed.&apos;
+                        }
+                        sh &apos;docker pull python:3.11&apos; 
+                        def dockerfileContent = &quot;&quot;&quot;
+                            # Start with a Node.js base image
+                            FROM node:16.14 AS node-base
+
+                            # Clear npm cache and install required global npm packages
+                            RUN npm cache clean -f &amp;&amp; npm install -g pnpm snyk@1.1229.0
+
+                            # Switch to a Python image for Python-specific tasks
+                            FROM python:3.11
+
+                            # Copy other files and perform additional setup if needed
+                            COPY PythonPlantsVsZombies/Requirements.txt /workspace/PythonPlantsVsZombies/Requirements.txt
+
+                            # Install necessary packages
+                            RUN python3 -m venv /workspace/PythonPlantsVsZombies/myenv
+                            RUN /bin/bash -c &quot;source /workspace/PythonPlantsVsZombies/myenv/bin/activate &amp;&amp; pip install -r /workspace/PythonPlantsVsZombies/Requirements.txt&quot;
+
+                        &quot;&quot;&quot;
+                        writeFile file: &apos;Dockerfile&apos;, text: dockerfileContent
+                        sh &apos;sudo -S docker build -t custom-python-snyk-image -f Dockerfile .&apos;
+                    } else {
+                        // Linux setup - You can keep your existing Linux Docker setup here
+                        def dockerfileContent = &quot;&quot;&quot;
+                            # Start with a Node.js base image
+                            FROM node:16.14 AS node-base
+
+                            # Clear npm cache
+                            RUN npm cache clean -f
+
+                            # Install required global npm packages
+                            RUN npm install -g pnpm snyk@1.1229.0
+
+                            # Switch to a Python image for Python-specific tasks
+                            FROM python:3.11
+                            
+                            # Install nodejs and npm to install snyk
+                            RUN apt-get update &amp;&amp; apt-get install -y python3-venv nodejs npm
+
+                            # Install snyk using npm
+                            RUN npm install -g snyk@1.1229.0
+
+                            # Install venv module
+                            RUN apt-get update &amp;&amp; apt-get install -y python3-venv
+
+                            # Set up a virtual environment
+                            RUN python3 -m venv /workspace/PythonPlantsVsZombies/myenv
+
+                            # Activate the virtual environment and install Python dependencies
+                            COPY PythonPlantsVsZombies/Requirements.txt /workspace/PythonPlantsVsZombies/Requirements.txt
+                            RUN /bin/bash -c &quot;source /workspace/PythonPlantsVsZombies/myenv/bin/activate &amp;&amp; pip install -r /workspace/PythonPlantsVsZombies/Requirements.txt&quot;
+
+
+                        &quot;&quot;&quot;
+                        writeFile file: &apos;Dockerfile&apos;, text: dockerfileContent
+                        sh &apos;echo $SUDO_PASS | sudo -S docker build -t custom-python-snyk-image -f Dockerfile .&apos;
+                    }</value>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                            </entry>
+                          </arguments>
+                        </args>
+                      </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                    </steps>
+                  </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                </branches>
+              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+                <name>Check PythonPlantsVsZombies in Docker</name>
+                <branches>
+                  <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                    <name>default</name>
+                    <steps>
+                      <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                        <name>script</name>
+                        <args class="org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTNamedArgumentList">
+                          <arguments class="linked-hash-map">
+                            <entry>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                                <key>scriptBlock</key>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                                <value class="string">def osType = sh(script: &apos;uname&apos;, returnStdout: true).trim()
+                    if (osType != &quot;Darwin&quot;) {
+                    // Run a Docker command to check if the PythonPlantsVsZombies directory exists inside the container
+                        def dirExists = sh(script: &apos;echo $SUDO_PASS | sudo -S docker run --rm -v $(pwd):/workspace -w /workspace custom-python-snyk-image sh -c &quot;[ -d PythonPlantsVsZombies ] &amp;&amp; echo exists || echo not exists&quot;&apos;, returnStdout: true).trim()
+                        if (dirExists == &quot;exists&quot;) {
+                            echo &quot;PythonPlantsVsZombies directory exists inside the Docker container.&quot;
+                            // Print the file structure of the directory inside the Docker container
+                            sh &apos;echo $SUDO_PASS | sudo -S docker run --rm -v $(pwd):/workspace -w /workspace custom-python-snyk-image sh -c &quot;ls -la PythonPlantsVsZombies&quot;&apos;
+                        } else {
+                            echo &quot;PythonPlantsVsZombies directory does not exist inside the Docker container.&quot;
+                        }
+                    }</value>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                            </entry>
+                          </arguments>
+                        </args>
+                      </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                    </steps>
+                  </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                </branches>
+              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+                <name>Create Branch</name>
+                <branches>
+                  <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                    <name>default</name>
+                    <steps>
+                      <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStep>
+                        <name>sh</name>
+                        <args class="org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTNamedArgumentList">
+                          <arguments class="linked-hash-map">
+                            <entry>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                                <key>script</key>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                                <value class="string">
+                    if git rev-parse --verify feature/update-date &gt;/dev/null 2&gt;&amp;1; then
+                        git checkout feature/update-date
+                    else
+                        git checkout -b feature/update-date
+                    fi
+                </value>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                            </entry>
+                          </arguments>
+                        </args>
+                      </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStep>
+                    </steps>
+                  </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                </branches>
+              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+                <name>Run Snyk Test First Time</name>
+                <branches>
+                  <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                    <name>default</name>
+                    <steps>
+                      <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                        <name>script</name>
+                        <args class="org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTNamedArgumentList">
+                          <arguments class="linked-hash-map">
+                            <entry>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                                <key>scriptBlock</key>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                                <value class="string">def osType = sh(script: &apos;uname&apos;, returnStdout: true).trim()
+                    if (osType == &quot;Darwin&quot;){
+                         // Capture the start time
+                        def startTime = System.currentTimeMillis()
+                           sh &apos;&apos;&apos;
+                            docker run --rm -v $(pwd):/workspace -w /workspace -e SNYK_TOKEN=${SNYK_TOKEN} custom-python-snyk-image sh -c &quot;
+                                cd PythonPlantsVsZombies
+                                python3 -m venv myenv
+                                source myenv/bin/activate
+                                pip install -r Requirements.txt
+                                snyk auth ${SNYK_TOKEN}
+                                snyk test --package-manager=pip --file=Requirements.txt &gt; snyk_test_output.txt                          
+                                cat snyk_test_output.txt
+                                exit 0
+                            &quot;
+                        &apos;&apos;&apos;
+
+                        // Calculate the duration in seconds
+                        def duration = (System.currentTimeMillis() - startTime) / 1000
+                        echo &quot;First Snyk scan took ${duration} seconds&quot;
+                        env.SNYK_SCAN_DURATION= &quot;${duration}&quot;
+                    }else{
+                        // Capture the start time
+                        def startTime = System.currentTimeMillis()
+                        sh &apos;&apos;&apos;
+                            echo $SUDO_PASS | sudo -S docker run --rm -v $(pwd):/workspace -w /workspace -e SNYK_TOKEN=${SNYK_TOKEN} custom-python-snyk-image sh -c &quot;
+                                cd PythonPlantsVsZombies
+                                 python3 -m venv myenv
+                                source myenv/bin/activate
+                                pip install -r Requirements.txt
+                                snyk auth ${SNYK_TOKEN}
+                                snyk test --package-manager=pip --file=Requirements.txt &gt; snyk_test_output.txt                          
+                                cat snyk_test_output.txt
+                                exit 0
+                            &quot;
+                        &apos;&apos;&apos;
+
+                        // Calculate the duration in seconds
+                        def duration = (System.currentTimeMillis() - startTime) / 1000
+                        echo &quot;First Snyk scan took ${duration} seconds&quot;
+                        env.SNYK_SCAN_DURATION= &quot;${duration}&quot;
+                    }</value>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                            </entry>
+                          </arguments>
+                        </args>
+                      </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                    </steps>
+                  </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                </branches>
+              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+                <name>Display Snyk Output</name>
+                <branches>
+                  <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                    <name>default</name>
+                    <steps>
+                      <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStep>
+                        <name>sh</name>
+                        <args class="org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTNamedArgumentList">
+                          <arguments class="linked-hash-map">
+                            <entry>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                                <key>script</key>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                                <value class="string">
+                    ls -la
+                    [ -f PythonPlantsVsZombies/snyk_test_output.txt ] || touch PythonPlantsVsZombies/snyk_test_output.txt
+                    cat PythonPlantsVsZombies/snyk_test_output.txt
+                </value>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                            </entry>
+                          </arguments>
+                        </args>
+                      </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStep>
+                    </steps>
+                  </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                </branches>
+              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+                <name>Push Results to Pushgateway</name>
+                <branches>
+                  <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                    <name>default</name>
+                    <steps>
+                      <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                        <name>script</name>
+                        <args class="org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTNamedArgumentList">
+                          <arguments class="linked-hash-map">
+                            <entry>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                                <key>scriptBlock</key>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                                <value class="string">def globalCounter = 0
+                    
+                    // Check if there are any vulnerabilities detected
+                    def vulnerabilitiesDetected = sh(script: &quot;&quot;&quot;
+                        grep -qE &apos;\\[(Low|Medium|High|Critical) Severity\\]&apos; PythonPlantsVsZombies/snyk_test_output.txt
+                    &quot;&quot;&quot;, returnStatus: true) == 0
+
+                     // Initialize counters for each severity
+                    def totalVulnerabilities = [&apos;Low&apos;: 0, &apos;Medium&apos;: 0, &apos;High&apos;: 0, &apos;Critical&apos;: 0]
+                    
+                    if (!vulnerabilitiesDetected) {
+                        echo &quot;No vulnerabilities detected.&quot;
+                    } else { 
+                    
+                    // Parse the snyk_output.txt file to extract severity ratings
+                    def ratings = sh(script: &quot;&quot;&quot;
+                        grep -oE &apos;\\[(Low|Medium|High|Critical) Severity\\]&apos; PythonPlantsVsZombies/snyk_test_output.txt | cut -d&apos;[&apos; -f2 | cut -d&apos; &apos; -f1 | sort | uniq -c
+                    &quot;&quot;&quot;, returnStdout: true).trim()
+
+                    // Update the counters based on the parsed ratings
+                    ratings.split(&quot;\n&quot;).each { line -&gt;
+                        def (count, rating) = line.split()
+                        totalVulnerabilities[rating] += count.toInteger()
+                    }
+                     def issuesCounter = 0;
+                    // Extract the names of all the issues associated with their severity level and push them to Pushgateway
+                    [&apos;Low&apos;, &apos;Medium&apos;, &apos;High&apos;, &apos;Critical&apos;].each { severity -&gt;
+                        def issues = sh(script: &quot;&quot;&quot;
+                            grep -oE &quot;✗ [^\\\\[]+ \\\\[${severity} Severity\\\\]&quot; PythonPlantsVsZombies/snyk_test_output.txt | awk -F &apos;✗ &apos; &apos;{print \$2}&apos; | awk -F &apos; \\\\[${severity}&apos; &apos;{print \$1}&apos; | tr &apos;\n&apos; &apos;,&apos;
+                        &quot;&quot;&quot;, returnStdout: true).trim()
+
+                        if (issues) {
+                            echo &quot;Pushing ${severity} vulnerabilities: ${issues}&quot;
+                            sh &quot;&quot;&quot;
+                                echo &quot;snyk_issues_${issuesCounter}{severity=\\&quot;${severity}\\&quot;, issues=\\&quot;${issues}\\&quot;, instance=\\&quot;${env.NODE_NAME}\\&quot;} 1&quot; | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/snyk_scan
+                            &quot;&quot;&quot;
+                            issuesCounter++
+                            }
+                        }
+                    }
+                    // Push individual and total counts for each severity to Pushgateway
+                    totalVulnerabilities.each { rating, count -&gt;
+                        echo &quot;Pushing ${rating} vulnerabilities count: ${count}&quot;
+                        sh &quot;&quot;&quot;
+                            echo &quot;snyk_vulnerabilities_${globalCounter}{severity=\\&quot;${rating}\\&quot;, instance=\\&quot;${env.NODE_NAME}\\&quot;} ${count}&quot; | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/snyk_scan
+                        &quot;&quot;&quot;
+                        globalCounter++
+                    }
+                    
+                    // Define the weight mapping for each rating
+                    def weightMap = [
+                        &apos;Low&apos;: 3.9,
+                        &apos;Medium&apos;: 6.9,
+                        &apos;High&apos;: 8.9,
+                        &apos;Critical&apos;: 10
+                    ]
+
+                    def totalWeightedScore = 0
+
+                    // Calculate the weighted score for each severity
+                    totalVulnerabilities.each { rating, count -&gt;
+                        // Calculate the weighted score
+                        def weightedScore = weightMap[rating] * count
+
+                        // Add the weighted score to the total
+                        totalWeightedScore += weightedScore
+
+                       }
+
+                    // Echo and push the total weighted score
+                    echo &quot;Pushing total weighted score for vulnerabilities: ${totalWeightedScore}&quot;
+                    sh &quot;&quot;&quot;
+                        echo &quot;snyk_total_vulnerabilities_weighted{instance=\\&quot;${env.NODE_NAME}\\&quot;} ${totalWeightedScore}&quot; | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/snyk_scan
+                    &quot;&quot;&quot;
+
+
+                    def syncScanDurationCounter = 0;
+                    // Push the Snyk scan duration to Pushgateway
+                    echo &quot;Pushing Snyk scan duration: ${env.SNYK_SCAN_DURATION} seconds&quot;
+                    sh &quot;&quot;&quot;
+                        echo &quot;snyk_scan_duration_seconds_${syncScanDurationCounter}{instance=\\&quot;${env.NODE_NAME}\\&quot;} ${env.SNYK_SCAN_DURATION}&quot; | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/snyk_scan
+                    &quot;&quot;&quot;
+                    syncScanDurationCounter++
+                    def mergeCount = sh(script: &apos;git log --oneline --merges --since=&quot;1 day ago&quot; origin/main | wc -l&apos;, returnStdout: true).trim()
+                    def totalNumVulnerabilities = totalVulnerabilities[&apos;Low&apos;] + totalVulnerabilities[&apos;Medium&apos;] + totalVulnerabilities[&apos;High&apos;] + totalVulnerabilities[&apos;Critical&apos;]
+                    def snykScanDuration = env.SNYK_SCAN_DURATION
+                    withCredentials([usernamePassword(credentialsId: &apos;Test&apos;, passwordVariable: &apos;GIT_PASSWORD&apos;, usernameVariable: &apos;GIT_USERNAME&apos;)]) {
+                        sh &quot;&quot;&quot;
+                            git config credential.helper &apos;store --file=.git/credentials&apos;
+                            echo &quot;https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au&quot; &gt; .git/credentials
+                            
+                            # Checkout the feature branch
+                            git checkout feature/update-date
+
+                            if [ -d &quot;Prediction&quot; ]; then
+                                # append new data for prediction
+                                echo &quot;deployment_frequency = ${mergeCount}, CVSSscores = ${totalWeightedScore}&quot; &gt;&gt; Prediction/predictionData_deploymentCVSS.txt
+
+                                echo &quot;Num_vulnerabilities = ${totalNumVulnerabilities}&quot; &gt;&gt; Prediction/predictionData_NoVul.txt
+                                
+                                echo &quot;deployment_frequency = ${mergeCount}&quot; &gt;&gt; Prediction/predictionData_deployment.txt
+                                echo &quot;SAST_Runtime = ${snykScanDuration}&quot; &gt;&gt; Prediction/predictionData_Runtime.txt
+                                git add Prediction/
+                                git commit -m &quot;Append new data for prediction&quot;
+                              
+                                # Checkout main and merge the feature branch
+                                 #   git checkout main
+                                 #   git pull origin main
+                                 #   git merge feature/update-date --no-ff --strategy-option theirs -m &quot;Merge feature/update-date into main&quot;
+                                 #   git push origin main
+                                else
+                                  echo &quot;Error: Prediction directory not found!&quot;
+                              exit 1
+                                fi
+                        &quot;&quot;&quot;
+  
+                    }</value>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                            </entry>
+                          </arguments>
+                        </args>
+                      </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                    </steps>
+                  </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                </branches>
+              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+                <name>Send Deployment Frequency Commits to Python Plants Vs Zombies</name>
+                <branches>
+                  <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                    <name>default</name>
+                    <steps>
+                      <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                        <name>script</name>
+                        <args class="org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTNamedArgumentList">
+                          <arguments class="linked-hash-map">
+                            <entry>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                                <key>scriptBlock</key>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                                <value class="string">def commitCountInDir = sh(script: &apos;git log --oneline --all --since=&quot;1 day ago&quot; -- PythonPlantsVsZombies/ | wc -l&apos;, returnStdout: true).trim()
+
+                    // Send this commit count to gateway
+                    sh  &quot;&quot;&quot;
+                        echo &apos;git_commit_frequency_daily_PythonPlantsVsZombies ${commitCountInDir}&apos; | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/git_metrics
+                    &quot;&quot;&quot;</value>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                            </entry>
+                          </arguments>
+                        </args>
+                      </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                    </steps>
+                  </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                </branches>
+              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+                <name>Send Deployment Frequency</name>
+                <branches>
+                  <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                    <name>default</name>
+                    <steps>
+                      <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                        <name>script</name>
+                        <args class="org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTNamedArgumentList">
+                          <arguments class="linked-hash-map">
+                            <entry>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                                <key>scriptBlock</key>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                                <value class="string">def mergeCount = sh(script: &apos;git log --oneline --merges --since=&quot;1 day ago&quot; origin/main | wc -l&apos;, returnStdout: true).trim()
+
+                    // Send this count to gateway
+                    sh  &quot;&quot;&quot;
+                        echo &apos;git_deployment_frequency_daily ${mergeCount}&apos; | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/git_metrics
+                     &quot;&quot;&quot;</value>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                            </entry>
+                          </arguments>
+                        </args>
+                      </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                    </steps>
+                  </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                </branches>
+              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+                <name>Predict based on the current data</name>
+                <branches>
+                  <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                    <name>default</name>
+                    <steps>
+                      <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                        <name>script</name>
+                        <args class="org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTNamedArgumentList">
+                          <arguments class="linked-hash-map">
+                            <entry>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                                <key>scriptBlock</key>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                                <value class="string">withCredentials([usernamePassword(credentialsId: &apos;Test&apos;, passwordVariable: &apos;GIT_PASSWORD&apos;, usernameVariable: &apos;GIT_USERNAME&apos;)]) {
+                           def osType = sh(script: &apos;uname&apos;, returnStdout: true).trim()
+                        if (osType != &quot;Darwin&quot;){ sh &apos;&apos;&apos;
+                            git config credential.helper &apos;store --file=.git/credentials&apos;
+                            echo &quot;https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au&quot; &gt; .git/credentials
+
+                            git checkout feature/update-date
+
+                            if [ -d &quot;Prediction&quot; ]; then
+                                echo $SUDO_PASS | sudo -S docker run --rm -v $(pwd):/workspace -w /workspace -e SNYK_TOKEN=${SNYK_TOKEN} custom-python-snyk-image sh -c &quot;
+                                    cd Prediction
+                                    python3 -m venv myenv
+                                    source myenv/bin/activate
+                                    pip install numpy
+                                    pip install matplotlib
+                                    python3 -u plotGraph.py
+                                    python3 -u plotDeploymentFrequency.py
+                                    python3 -u plotLeadTime.py
+                                    python3 -u plotNoVul.py
+                                    python3 -u plotRuntime.py
+                                    python3 -u plotTestPassRate.py
+                                &quot;
+                                git add Prediction/
+                                git commit -m &quot;Push the prediction picture to the github&quot;
+
+                                git checkout main
+                                git pull origin main
+                                git merge feature/update-date --no-ff --strategy-option theirs -m &quot;Merge feature/update-date into main&quot;
+                                git push origin main
+                            else
+                                echo &quot;Error: Prediction directory not found!&quot;
+                                exit 1
+                            fi
+                        &apos;&apos;&apos;
+                                               } else {sh &apos;&apos;&apos;
+                            git config credential.helper &apos;store --file=.git/credentials&apos;
+                            echo &quot;https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au&quot; &gt; .git/credentials
+
+                            git checkout feature/update-date
+
+                            if [ -d &quot;Prediction&quot; ]; then
+                                docker run --rm -v $(pwd):/workspace -w /workspace -e SNYK_TOKEN=${SNYK_TOKEN} custom-python-snyk-image sh -c &quot;
+                                    cd Prediction
+                                    python3 -m venv myenv
+                                    source myenv/bin/activate
+                                    pip install numpy
+                                    pip install matplotlib
+                                    python3 -u plotGraph.py
+                                    python3 -u plotDeploymentFrequency.py
+                                    python3 -u plotLeadTime.py
+                                    python3 -u plotNoVul.py
+                                    python3 -u plotRuntime.py
+                                    python3 -u plotTestPassRate.py
+                                &quot;
+                                git add Prediction/
+                                git commit -m &quot;Push the prediction picture to the github&quot;
+
+                                git checkout main
+                                git pull origin main
+                                git merge feature/update-date --no-ff --strategy-option theirs -m &quot;Merge feature/update-date into main&quot;
+                                git push origin main
+                            else
+                                echo &quot;Error: Prediction directory not found!&quot;
+                                exit 1
+                            fi
+                        &apos;&apos;&apos;
+                        }
+                        
+                    }</value>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                            </entry>
+                          </arguments>
+                        </args>
+                      </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                    </steps>
+                  </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                </branches>
+              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+                <name>Print Image URLS</name>
+                <branches>
+                  <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                    <name>default</name>
+                    <steps>
+                      <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                        <name>script</name>
+                        <args class="org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTNamedArgumentList">
+                          <arguments class="linked-hash-map">
+                            <entry>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                                <key>scriptBlock</key>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                                <value class="string">def repoURL = sh(script: &quot;git config --get remote.origin.url&quot;, returnStdout: true).trim()
+
+                                // Convert the repository URL from SSH format to HTTPS format if necessary
+                                if (repoURL.startsWith(&quot;git@&quot;)) {
+                                    repoURL = repoURL.replace(&quot;:&quot;, &quot;/&quot;).replace(&quot;git@&quot;, &quot;https://&quot;).replace(&quot;.git&quot;, &quot;&quot;)
+                                }
+                    
+                                // Remove any occurrence of &quot;.git&quot; from the URL
+                                repoURL = repoURL.replace(&quot;.git&quot;, &quot;&quot;)
+
+                                // Fetch all PNG files in the directory
+                                def pngFiles = sh(script: &quot;find Prediction -type f -name &apos;*.png&apos;&quot;, returnStdout: true).trim().split(&quot;\n&quot;)
+                                    
+                                // Print the URL for each PNG file
+                                pngFiles.each { file -&gt;
+                                    echo &quot;URL: ${repoURL}/blob/main/${file}&quot;
+                                }</value>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                            </entry>
+                          </arguments>
+                        </args>
+                      </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                    </steps>
+                  </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                </branches>
+              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+                <name>Fail if vulnerable</name>
+                <branches>
+                  <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                    <name>default</name>
+                    <steps>
+                      <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                        <name>script</name>
+                        <args class="org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTNamedArgumentList">
+                          <arguments class="linked-hash-map">
+                            <entry>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                                <key>scriptBlock</key>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                                <value class="string">def vulnerabilitiesDetected = sh(script: &quot;&quot;&quot;
+                        grep -qE &apos;\\[(Low|Medium|High|Critical) Severity\\]&apos; PythonPlantsVsZombies/snyk_test_output.txt
+                    &quot;&quot;&quot;, returnStatus: true) == 0
+
+                    if (vulnerabilitiesDetected) {
+                        echo &quot;failed due to vulnerabilities being detected.&quot;
+                        exit 1
+                    }</value>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                            </entry>
+                          </arguments>
+                        </args>
+                      </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                    </steps>
+                  </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                </branches>
+              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+                <name>Copy to Production / Merge</name>
+                <branches>
+                  <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                    <name>default</name>
+                    <steps>
+                      <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                        <name>script</name>
+                        <args class="org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTNamedArgumentList">
+                          <arguments class="linked-hash-map">
+                            <entry>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                                <key>scriptBlock</key>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                              <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                                <value class="string">def osType = sh(script: &apos;uname&apos;, returnStdout: true).trim()
+                    if (osType == &quot;Darwin&quot;){
+                        withCredentials([usernamePassword(credentialsId: &apos;Test&apos;, passwordVariable: &apos;GIT_PASSWORD&apos;, usernameVariable: &apos;GIT_USERNAME&apos;)]) {
+                                        sh &apos;&apos;&apos;
+                                            git config credential.helper &apos;store --file=.git/credentials&apos;
+                                            echo &quot;https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au&quot; &gt; .git/credentials
+
+                                            # Checkout the feature branch
+                                            git checkout feature/update-date
+
+                                            if [ ! -d &quot;Production&quot; ]; then
+                                                mkdir Production
+                                            fi
+
+                                            if [ -d &quot;PythonPlantsVsZombies&quot; ]; then
+                                                # Check if package.json or package-lock.json exists inside PythonPlantsVsZombies and remove them
+                                                if [ -f &quot;PythonPlantsVsZombies/package.json&quot; ]; then
+                                                    echo &quot;package.json detected inside PythonPlantsVsZombies. Removing it before copying to production.&quot;
+                                                    rm PythonPlantsVsZombies/package.json
+                                                fi
+
+                                                if [ -f &quot;PythonPlantsVsZombies/package-lock.json&quot; ]; then
+                                                    echo &quot;package-lock.json detected inside PythonPlantsVsZombies. Removing it before copying to production.&quot;
+                                                    rm PythonPlantsVsZombies/package-lock.json
+                                                fi
+
+                                                rm -r Production/* &amp;&amp; cp -r PythonPlantsVsZombies/* Production/
+
+                                            
+
+                                                # Modify a text document with the current time
+                                                echo &quot;last commit: $(date)&quot; &gt; Production/last_commit.txt
+
+                                                git add Production/
+                                                git commit -m &quot;Copy PythonPlantsVsZombies to Production directory and update last_commit.txt&quot;
+
+                                                # Checkout main and merge the feature branch
+                                                git checkout main
+                                                git pull origin main
+                                                git merge feature/update-date --no-ff --strategy-option theirs -m &quot;Merge feature/update-date into main&quot;
+                                                git push origin main
+                                            else
+                                                echo &quot;Error: PythonPlantsVsZombies directory not found!&quot;
+                                                exit 1
+                                            fi
+                                        &apos;&apos;&apos;
+                                    }
+                    }else{
+                        withCredentials([usernamePassword(credentialsId: &apos;Test&apos;, passwordVariable: &apos;GIT_PASSWORD&apos;, usernameVariable: &apos;GIT_USERNAME&apos;)]) {
+                                        sh &apos;&apos;&apos;
+                                            git config credential.helper &apos;store --file=.git/credentials&apos;
+                                            echo &quot;https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au&quot; &gt; .git/credentials
+
+                                            # Checkout the feature branch
+                                            git checkout feature/update-date
+
+                                            if [ ! -d &quot;Production&quot; ]; then
+                                                mkdir Production
+                                            fi
+
+                                            if [ -d &quot;PythonPlantsVsZombies&quot; ]; then
+                                                # Check if package.json or package-lock.json exists inside PythonPlantsVsZombies and remove them
+                                                if [ -f &quot;PythonPlantsVsZombies/package.json&quot; ]; then
+                                                    echo &quot;package.json detected inside PythonPlantsVsZombies. Removing it before copying to production.&quot;
+                                                    rm PythonPlantsVsZombies/package.json
+                                                fi
+
+                                                if [ -f &quot;PythonPlantsVsZombies/package-lock.json&quot; ]; then
+                                                    echo &quot;package-lock.json detected inside PythonPlantsVsZombies. Removing it before copying to production.&quot;
+                                                    rm PythonPlantsVsZombies/package-lock.json
+                                                fi
+
+                                                cp -r PythonPlantsVsZombies/* Production/
+
+                                            
+
+                                                # Modify a text document with the current time
+                                                echo &quot;last commit: $(date)&quot; &gt; Production/last_commit.txt
+
+                                                git add Production/
+                                                git commit -m &quot;Copy PythonPlantsVsZombies to Production directory and update last_commit.txt&quot;
+
+                                                # Checkout main and merge the feature branch
+                                                git checkout main
+                                                git pull origin main
+                                                git merge feature/update-date --no-ff --strategy-option theirs -m &quot;Merge feature/update-date into main&quot;
+                                                git push origin main
+                                            else
+                                                echo &quot;Error: PythonPlantsVsZombies directory not found!&quot;
+                                                exit 1
+                                            fi
+                                        &apos;&apos;&apos;
+                                    }
+                    }</value>
+                              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                            </entry>
+                          </arguments>
+                        </args>
+                      </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTScriptBlock>
+                    </steps>
+                  </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTBranch>
+                </branches>
+              </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage>
+            </stages>
+            <uuid>c6836679-8624-4291-8378-45b70645fbfd</uuid>
+          </stages>
+          <environment>
+            <variables class="linked-hash-map">
+              <entry>
+                <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                  <key>SNYK_TOKEN</key>
+                </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+                  <value class="string">50b15e06-0453-4c5c-ad25-942a6808536e</value>
+                </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-ConstantValue>
+              </entry>
+              <entry>
+                <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                  <key>JENKINS_HOST</key>
+                </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKey>
+                <org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-GStringValue>
+                  <value class="string">${new URL(env.JENKINS_URL).getHost()}</value>
+                </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTValue_-GStringValue>
+              </entry>
+            </variables>
+          </environment>
+          <agent>
+            <agentType>
+              <key>any</key>
+            </agentType>
+          </agent>
+        </org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTPipelineDef>
+      </pipelineDefs>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.ExecutionModelAction>
+    <com.cloudbees.plugins.credentials.builds.CredentialsParameterBinder plugin="credentials@1309.v8835d63eb_d8a_">
+      <boundCredentials class="concurrent-hash-map"/>
+    </com.cloudbees.plugins.credentials.builds.CredentialsParameterBinder>
+    <hudson.plugins.git.util.BuildData plugin="git@5.2.1">
+      <buildsByBranchName>
+        <entry>
+          <string>refs/remotes/origin/main</string>
+          <hudson.plugins.git.util.Build>
+            <marked plugin="git-client@4.5.0">
+              <sha1>814b18ad48b0c73709c55922aa7fe7800445276c</sha1>
+              <branches class="list">
+                <hudson.plugins.git.Branch>
+                  <sha1 reference="../../../sha1"/>
+                  <name>refs/remotes/origin/main</name>
+                </hudson.plugins.git.Branch>
+              </branches>
+            </marked>
+            <revision reference="../marked"/>
+            <hudsonBuildNumber>4</hudsonBuildNumber>
+          </hudson.plugins.git.util.Build>
+        </entry>
+      </buildsByBranchName>
+      <lastBuild reference="../buildsByBranchName/entry/hudson.plugins.git.util.Build"/>
+      <remoteUrls>
+        <string>https://github.com/BarrettBytes/DORAAndSASTMetricJenkinsPlugin.git</string>
+      </remoteUrls>
+    </hudson.plugins.git.util.BuildData>
+    <org.jenkinsci.plugins.workflow.steps.scm.MultiSCMRevisionState plugin="workflow-scm-step@415.v434365564324">
+      <revisionStates>
+        <entry>
+          <string>git https://github.com/BarrettBytes/DORAAndSASTMetricJenkinsPlugin.git</string>
+          <hudson.scm.SCMRevisionState_-None/>
+        </entry>
+      </revisionStates>
+    </org.jenkinsci.plugins.workflow.steps.scm.MultiSCMRevisionState>
+    <org.jenkinsci.plugins.workflow.cps.EnvActionImpl plugin="workflow-cps@3806.va_3a_6988277b_2">
+      <env class="tree-map"/>
+    </org.jenkinsci.plugins.workflow.cps.EnvActionImpl>
+  </actions>
+  <queueId>11</queueId>
+  <timestamp>1701261992598</timestamp>
+  <startTime>1701261992608</startTime>
+  <result>FAILURE</result>
+  <duration>156917</duration>
+  <charset>UTF-8</charset>
+  <keepLog>false</keepLog>
+  <execution class="org.jenkinsci.plugins.workflow.cps.CpsFlowExecution">
+    <result>FAILURE</result>
+    <script>pipeline {
+    agent any
+
+    environment {
+        SNYK_TOKEN = &apos;50b15e06-0453-4c5c-ad25-942a6808536e&apos;
+        // Extract the IP or hostname from the JENKINS_URL
+        JENKINS_HOST = new URL(env.JENKINS_URL).getHost()
+    }
+
+    stages {
+        stage(&apos;Determine Agent&apos;) {
+            steps {
+                script {
+                    if (isUnix()) {
+                        if (sh(script: &apos;command -v apt&apos;, returnStatus: true) == 0) {
+                            env.AGENT_LABEL = &apos;my-agent-label&apos;
+                        } else if (sh(script: &apos;command -v brew&apos;, returnStatus: true) == 0) {
+                            env.AGENT_LABEL = &apos;NodeHugh&apos;
+                        } else {
+                            env.AGENT_LABEL = &apos;unknown-agent&apos;
+                        }
+                    } else {
+                        env.AGENT_LABEL = &apos;unknown-agent&apos;
+                    }
+                }
+            }
+        }
+            // should add clear caches
+            // sudo rm -r /var/jenkins/workspaces
+
+        stage(&apos;update package manager&apos;) {
+            steps {
+                script {
+                    if (isUnix()) {
+                        // Check if the system is Ubuntu
+                        def osType = sh(script: &apos;uname&apos;, returnStdout: true).trim()
+                        if (osType == &quot;Darwin&quot;) {
+                            timeout(time: 1, unit: &apos;MINUTES&apos;) {
+                                catchError(buildResult: &apos;SUCCESS&apos;, stageResult: &apos;UNSTABLE&apos;) {
+                                    sh &apos;brew update&apos;
+                                }
+                            }
+                        }
+                        else if (sh(script: &apos;command -v apt&apos;, returnStatus: true) == 0) {
+                            timeout(time: 1, unit: &apos;MINUTES&apos;) {
+                                catchError(buildResult: &apos;SUCCESS&apos;, stageResult: &apos;UNSTABLE&apos;) {
+                                    sh &apos;sudo apt update&apos;
+                                }
+                            }
+                        }
+                        else {
+                            error &quot;Unsupported operating system&quot;
+                        }
+                    } else {
+                        error &quot;Unsupported operating system&quot;
+                    }
+
+                }
+            }
+        }
+
+
+        stage(&apos;Setup Environment&apos;) {
+            steps{
+                // retry(3) {
+                    script {
+                        // Check if the system is Ubuntu
+                        def installDocker = {
+                            if (sh(script: &apos;command -v apt&apos;, returnStatus: true) == 0) {
+                                // Check if Docker is installed
+                                if (sh(script: &apos;docker --version&apos;, returnStatus: true) != 0) {
+                                    echo &quot;Docker is not installed. Installing Docker using apt.&quot;
+                                echo &quot;Ubuntu detected. Installing Docker using apt.&quot;
+                                sh &apos;&apos;&apos;
+                                    sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
+                                    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+                                    sudo add-apt-repository &quot;deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable&quot;
+                                    sudo apt update
+                                    sudo apt install -y docker-ce
+                                    sudo service docker start
+                                &apos;&apos;&apos;
+                                }
+                            } else if (sh(script: &apos;command -v yum&apos;, returnStatus: true) == 0) {
+                                echo &quot;Amazon Linux detected. Installing Docker using yum.&quot;
+                                sh &apos;&apos;&apos;
+                                    sudo yum update -y
+                                    sudo yum install -y docker
+                                    sudo systemctl start docker
+                                    sudo systemctl enable docker
+                                &apos;&apos;&apos;
+                            }else {
+                                // error &quot;Unsupported OS. Cannot install Docker.&quot;
+                                echo &quot;Unsupported OS. Cannot install Docker.&quot;
+                            }
+                        }
+                        def osType = sh(script: &apos;uname&apos;, returnStdout: true).trim()
+                        if (osType == &quot;Darwin&quot;) {
+                            def brewInstalled = sh(script: &apos;command -v brew&apos;, returnStatus: true) == 0
+                            if (!brewInstalled) {
+                                echo &quot;Homebrew not detected. Installing Homebrew first.&quot;
+                                sh &apos;&apos;&apos;
+                                    /bin/bash -c &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)&quot;
+                                &apos;&apos;&apos;
+                            }
+                            if (sh(script: &apos;command -v brew&apos;, returnStatus: true) == 0) {
+                                echo &quot;Homebrew installed. Installing Docker using brew.&quot;
+                                sh &apos;&apos;&apos;
+                                    brew install --cask docker
+                                &apos;&apos;&apos;
+                            } 
+                            else {
+                                echo &quot;Failed to install Homebrew. You are not using MacOs.&quot;
+                            }
+                        }else{
+                            retry(3, { installDocker() })
+                        }
+
+                    }
+                }
+
+            }
+        
+        stage(&apos;Configure Docker Builder&apos;) {
+            steps {
+                script {
+                    sh &apos;export DOCKER_CLI_ACI=0&apos;
+                }
+            }
+        }
+
+            
+        stage(&apos;Check Docker Status&apos;) {
+            steps {
+                script {
+                    // Check if Docker is running
+                    echo &quot;Check Docker Status&quot;
+
+                    def status = sh(script: &apos;sudo docker info&apos;, returnStatus: true)
+                    if (status != 0) {
+                        def osType = sh(script: &apos;uname&apos;, returnStdout: true).trim()
+                        if (osType == &quot;Darwin&quot;) {
+                            echo &quot;Docker is not running. Attempting to start Docker Desktop.&quot;
+                            // Open Docker Desktop using AppleScript
+                            sh &apos;osascript -e \&apos;tell application &quot;Docker&quot; to activate\&apos;&apos;
+                            sleep 10  // Give Docker a few seconds to start
+                        }
+                        else{
+                            echo &quot;Docker is not running. Attempting to start Docker.&quot;
+                            sh &apos;sudo dockerd &amp;&apos;
+                            sleep 10  // Give Docker a few seconds to start
+                        }
+
+                    }
+                }
+            }
+        }
+
+        // Commented to notice that this should be changed, but not needed for now
+                stage(&apos;Setup Docker Environment for Python&apos;) {
+            steps {
+                script {
+                    def osType = sh(script: &apos;uname&apos;, returnStdout: true).trim()
+                    if (osType != &quot;Darwin&quot;) {
+                        // Add the Jenkins agent user to the docker group
+                        sh &apos;sudo usermod -aG docker $USER&apos;
+                        sh &apos;sudo service docker restart&apos;
+                    }
+                    if (osType == &quot;Darwin&quot;) {
+                        def pythonCheck = sh(script: &apos;python3 --version&apos;, returnStatus: true)
+                        if (pythonCheck != 0) {
+                            echo &apos;Python not found, installing...&apos;
+                            sh  
+                            &apos;&apos;&apos;
+                                brew install python3
+                            &apos;&apos;&apos;
+                        } else {
+                            echo &apos;Python already installed.&apos;
+                        }
+                        def pipCheck = sh(script: &apos;pip --version&apos;, returnStatus: true)
+                        if (pipCheck != 0) {
+                            echo &apos;pip3 not found, installing...&apos;
+                            sh &apos;&apos;&apos;
+                                curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+                                python3 get-pip.py
+                            &apos;&apos;&apos;
+                        } else {
+                            echo &apos;pip3 already installed.&apos;
+                        }
+                        sh &apos;docker pull python:3.11&apos; 
+                        def dockerfileContent = &quot;&quot;&quot;
+                            # Start with a Node.js base image
+                            FROM node:16.14 AS node-base
+
+                            # Clear npm cache and install required global npm packages
+                            RUN npm cache clean -f &amp;&amp; npm install -g pnpm snyk@1.1229.0
+
+                            # Switch to a Python image for Python-specific tasks
+                            FROM python:3.11
+
+                            # Copy other files and perform additional setup if needed
+                            COPY PythonPlantsVsZombies/Requirements.txt /workspace/PythonPlantsVsZombies/Requirements.txt
+
+                            # Install necessary packages
+                            RUN python3 -m venv /workspace/PythonPlantsVsZombies/myenv
+                            RUN /bin/bash -c &quot;source /workspace/PythonPlantsVsZombies/myenv/bin/activate &amp;&amp; pip install -r /workspace/PythonPlantsVsZombies/Requirements.txt&quot;
+
+                        &quot;&quot;&quot;
+                        writeFile file: &apos;Dockerfile&apos;, text: dockerfileContent
+                        sh &apos;sudo -S docker build -t custom-python-snyk-image -f Dockerfile .&apos;
+                    } else {
+                        // Linux setup - You can keep your existing Linux Docker setup here
+                        def dockerfileContent = &quot;&quot;&quot;
+                            # Start with a Node.js base image
+                            FROM node:16.14 AS node-base
+
+                            # Clear npm cache
+                            RUN npm cache clean -f
+
+                            # Install required global npm packages
+                            RUN npm install -g pnpm snyk@1.1229.0
+
+                            # Switch to a Python image for Python-specific tasks
+                            FROM python:3.11
+                            
+                            # Install nodejs and npm to install snyk
+                            RUN apt-get update &amp;&amp; apt-get install -y python3-venv nodejs npm
+
+                            # Install snyk using npm
+                            RUN npm install -g snyk@1.1229.0
+
+                            # Install venv module
+                            RUN apt-get update &amp;&amp; apt-get install -y python3-venv
+
+                            # Set up a virtual environment
+                            RUN python3 -m venv /workspace/PythonPlantsVsZombies/myenv
+
+                            # Activate the virtual environment and install Python dependencies
+                            COPY PythonPlantsVsZombies/Requirements.txt /workspace/PythonPlantsVsZombies/Requirements.txt
+                            RUN /bin/bash -c &quot;source /workspace/PythonPlantsVsZombies/myenv/bin/activate &amp;&amp; pip install -r /workspace/PythonPlantsVsZombies/Requirements.txt&quot;
+
+
+                        &quot;&quot;&quot;
+                        writeFile file: &apos;Dockerfile&apos;, text: dockerfileContent
+                        sh &apos;echo $SUDO_PASS | sudo -S docker build -t custom-python-snyk-image -f Dockerfile .&apos;
+                    }
+                }
+            }
+        }
+        
+       /*   stage(&apos;Build Docker Image&apos;) {
+            steps {
+                script {
+                    def osType = sh(script: &apos;uname&apos;, returnStdout: true).trim()
+                    if (osType != &quot;Darwin&quot;) {
+                        sh &apos;docker build -t custom-python-snyk-image -f Dockerfile .&apos;
+                    }
+                }
+            }
+        } */
+
+        stage(&apos;Check PythonPlantsVsZombies in Docker&apos;) {
+            steps {
+                script {
+                    def osType = sh(script: &apos;uname&apos;, returnStdout: true).trim()
+                    if (osType != &quot;Darwin&quot;) {
+                    // Run a Docker command to check if the PythonPlantsVsZombies directory exists inside the container
+                        def dirExists = sh(script: &apos;echo $SUDO_PASS | sudo -S docker run --rm -v $(pwd):/workspace -w /workspace custom-python-snyk-image sh -c &quot;[ -d PythonPlantsVsZombies ] &amp;&amp; echo exists || echo not exists&quot;&apos;, returnStdout: true).trim()
+                        if (dirExists == &quot;exists&quot;) {
+                            echo &quot;PythonPlantsVsZombies directory exists inside the Docker container.&quot;
+                            // Print the file structure of the directory inside the Docker container
+                            sh &apos;echo $SUDO_PASS | sudo -S docker run --rm -v $(pwd):/workspace -w /workspace custom-python-snyk-image sh -c &quot;ls -la PythonPlantsVsZombies&quot;&apos;
+                        } else {
+                            echo &quot;PythonPlantsVsZombies directory does not exist inside the Docker container.&quot;
+                        }
+                    }
+                }
+            }
+        }
+
+        stage(&apos;Create Branch&apos;) {
+            steps {
+                sh &apos;&apos;&apos;
+                    if git rev-parse --verify feature/update-date &gt;/dev/null 2&gt;&amp;1; then
+                        git checkout feature/update-date
+                    else
+                        git checkout -b feature/update-date
+                    fi
+                &apos;&apos;&apos;
+            }
+        }
+
+        stage(&apos;Run Snyk Test First Time&apos;) {
+            steps {
+                script {
+                    def osType = sh(script: &apos;uname&apos;, returnStdout: true).trim()
+                    if (osType == &quot;Darwin&quot;){
+                         // Capture the start time
+                        def startTime = System.currentTimeMillis()
+                           sh &apos;&apos;&apos;
+                            docker run --rm -v $(pwd):/workspace -w /workspace -e SNYK_TOKEN=${SNYK_TOKEN} custom-python-snyk-image sh -c &quot;
+                                cd PythonPlantsVsZombies
+                                python3 -m venv myenv
+                                source myenv/bin/activate
+                                pip install -r Requirements.txt
+                                snyk auth ${SNYK_TOKEN}
+                                snyk test --package-manager=pip --file=Requirements.txt &gt; snyk_test_output.txt                          
+                                cat snyk_test_output.txt
+                                exit 0
+                            &quot;
+                        &apos;&apos;&apos;
+
+                        // Calculate the duration in seconds
+                        def duration = (System.currentTimeMillis() - startTime) / 1000
+                        echo &quot;First Snyk scan took ${duration} seconds&quot;
+                        env.SNYK_SCAN_DURATION= &quot;${duration}&quot;
+                    }else{
+                        // Capture the start time
+                        def startTime = System.currentTimeMillis()
+                        sh &apos;&apos;&apos;
+                            echo $SUDO_PASS | sudo -S docker run --rm -v $(pwd):/workspace -w /workspace -e SNYK_TOKEN=${SNYK_TOKEN} custom-python-snyk-image sh -c &quot;
+                                cd PythonPlantsVsZombies
+                                 python3 -m venv myenv
+                                source myenv/bin/activate
+                                pip install -r Requirements.txt
+                                snyk auth ${SNYK_TOKEN}
+                                snyk test --package-manager=pip --file=Requirements.txt &gt; snyk_test_output.txt                          
+                                cat snyk_test_output.txt
+                                exit 0
+                            &quot;
+                        &apos;&apos;&apos;
+
+                        // Calculate the duration in seconds
+                        def duration = (System.currentTimeMillis() - startTime) / 1000
+                        echo &quot;First Snyk scan took ${duration} seconds&quot;
+                        env.SNYK_SCAN_DURATION= &quot;${duration}&quot;
+                    }
+
+                }
+            }
+        }
+
+        stage(&apos;Display Snyk Output&apos;) {
+            steps {
+                sh &apos;&apos;&apos;
+                    ls -la
+                    [ -f PythonPlantsVsZombies/snyk_test_output.txt ] || touch PythonPlantsVsZombies/snyk_test_output.txt
+                    cat PythonPlantsVsZombies/snyk_test_output.txt
+                &apos;&apos;&apos;
+            }
+        }
+
+        stage(&apos;Push Results to Pushgateway&apos;) {
+            steps {
+                script {
+                    // Initialize a global counter for metric pushes
+                    def globalCounter = 0
+                    
+                    // Check if there are any vulnerabilities detected
+                    def vulnerabilitiesDetected = sh(script: &quot;&quot;&quot;
+                        grep -qE &apos;\\[(Low|Medium|High|Critical) Severity\\]&apos; PythonPlantsVsZombies/snyk_test_output.txt
+                    &quot;&quot;&quot;, returnStatus: true) == 0
+
+                     // Initialize counters for each severity
+                    def totalVulnerabilities = [&apos;Low&apos;: 0, &apos;Medium&apos;: 0, &apos;High&apos;: 0, &apos;Critical&apos;: 0]
+                    
+                    if (!vulnerabilitiesDetected) {
+                        echo &quot;No vulnerabilities detected.&quot;
+                    } else { 
+                    
+                    // Parse the snyk_output.txt file to extract severity ratings
+                    def ratings = sh(script: &quot;&quot;&quot;
+                        grep -oE &apos;\\[(Low|Medium|High|Critical) Severity\\]&apos; PythonPlantsVsZombies/snyk_test_output.txt | cut -d&apos;[&apos; -f2 | cut -d&apos; &apos; -f1 | sort | uniq -c
+                    &quot;&quot;&quot;, returnStdout: true).trim()
+
+                    // Update the counters based on the parsed ratings
+                    ratings.split(&quot;\n&quot;).each { line -&gt;
+                        def (count, rating) = line.split()
+                        totalVulnerabilities[rating] += count.toInteger()
+                    }
+                     def issuesCounter = 0;
+                    // Extract the names of all the issues associated with their severity level and push them to Pushgateway
+                    [&apos;Low&apos;, &apos;Medium&apos;, &apos;High&apos;, &apos;Critical&apos;].each { severity -&gt;
+                        def issues = sh(script: &quot;&quot;&quot;
+                            grep -oE &quot;✗ [^\\\\[]+ \\\\[${severity} Severity\\\\]&quot; PythonPlantsVsZombies/snyk_test_output.txt | awk -F &apos;✗ &apos; &apos;{print \$2}&apos; | awk -F &apos; \\\\[${severity}&apos; &apos;{print \$1}&apos; | tr &apos;\n&apos; &apos;,&apos;
+                        &quot;&quot;&quot;, returnStdout: true).trim()
+
+                        if (issues) {
+                            echo &quot;Pushing ${severity} vulnerabilities: ${issues}&quot;
+                            sh &quot;&quot;&quot;
+                                echo &quot;snyk_issues_${issuesCounter}{severity=\\&quot;${severity}\\&quot;, issues=\\&quot;${issues}\\&quot;, instance=\\&quot;${env.NODE_NAME}\\&quot;} 1&quot; | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/snyk_scan
+                            &quot;&quot;&quot;
+                            issuesCounter++
+                            }
+                        }
+                    }
+                    // Push individual and total counts for each severity to Pushgateway
+                    totalVulnerabilities.each { rating, count -&gt;
+                        echo &quot;Pushing ${rating} vulnerabilities count: ${count}&quot;
+                        sh &quot;&quot;&quot;
+                            echo &quot;snyk_vulnerabilities_${globalCounter}{severity=\\&quot;${rating}\\&quot;, instance=\\&quot;${env.NODE_NAME}\\&quot;} ${count}&quot; | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/snyk_scan
+                        &quot;&quot;&quot;
+                        globalCounter++
+                    }
+                    
+                    // Define the weight mapping for each rating
+                    def weightMap = [
+                        &apos;Low&apos;: 3.9,
+                        &apos;Medium&apos;: 6.9,
+                        &apos;High&apos;: 8.9,
+                        &apos;Critical&apos;: 10
+                    ]
+
+                    def totalWeightedScore = 0
+
+                    // Calculate the weighted score for each severity
+                    totalVulnerabilities.each { rating, count -&gt;
+                        // Calculate the weighted score
+                        def weightedScore = weightMap[rating] * count
+
+                        // Add the weighted score to the total
+                        totalWeightedScore += weightedScore
+
+                       }
+
+                    // Echo and push the total weighted score
+                    echo &quot;Pushing total weighted score for vulnerabilities: ${totalWeightedScore}&quot;
+                    sh &quot;&quot;&quot;
+                        echo &quot;snyk_total_vulnerabilities_weighted{instance=\\&quot;${env.NODE_NAME}\\&quot;} ${totalWeightedScore}&quot; | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/snyk_scan
+                    &quot;&quot;&quot;
+
+
+                    def syncScanDurationCounter = 0;
+                    // Push the Snyk scan duration to Pushgateway
+                    echo &quot;Pushing Snyk scan duration: ${env.SNYK_SCAN_DURATION} seconds&quot;
+                    sh &quot;&quot;&quot;
+                        echo &quot;snyk_scan_duration_seconds_${syncScanDurationCounter}{instance=\\&quot;${env.NODE_NAME}\\&quot;} ${env.SNYK_SCAN_DURATION}&quot; | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/snyk_scan
+                    &quot;&quot;&quot;
+                    syncScanDurationCounter++
+                    def mergeCount = sh(script: &apos;git log --oneline --merges --since=&quot;1 day ago&quot; origin/main | wc -l&apos;, returnStdout: true).trim()
+                    def totalNumVulnerabilities = totalVulnerabilities[&apos;Low&apos;] + totalVulnerabilities[&apos;Medium&apos;] + totalVulnerabilities[&apos;High&apos;] + totalVulnerabilities[&apos;Critical&apos;]
+                    def snykScanDuration = env.SNYK_SCAN_DURATION
+                    withCredentials([usernamePassword(credentialsId: &apos;Test&apos;, passwordVariable: &apos;GIT_PASSWORD&apos;, usernameVariable: &apos;GIT_USERNAME&apos;)]) {
+                        sh &quot;&quot;&quot;
+                            git config credential.helper &apos;store --file=.git/credentials&apos;
+                            echo &quot;https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au&quot; &gt; .git/credentials
+                            
+                            # Checkout the feature branch
+                            git checkout feature/update-date
+
+                            if [ -d &quot;Prediction&quot; ]; then
+                                # append new data for prediction
+                                echo &quot;deployment_frequency = ${mergeCount}, CVSSscores = ${totalWeightedScore}&quot; &gt;&gt; Prediction/predictionData_deploymentCVSS.txt
+
+                                echo &quot;Num_vulnerabilities = ${totalNumVulnerabilities}&quot; &gt;&gt; Prediction/predictionData_NoVul.txt
+                                
+                                echo &quot;deployment_frequency = ${mergeCount}&quot; &gt;&gt; Prediction/predictionData_deployment.txt
+                                echo &quot;SAST_Runtime = ${snykScanDuration}&quot; &gt;&gt; Prediction/predictionData_Runtime.txt
+                                git add Prediction/
+                                git commit -m &quot;Append new data for prediction&quot;
+                              
+                                # Checkout main and merge the feature branch
+                                 #   git checkout main
+                                 #   git pull origin main
+                                 #   git merge feature/update-date --no-ff --strategy-option theirs -m &quot;Merge feature/update-date into main&quot;
+                                 #   git push origin main
+                                else
+                                  echo &quot;Error: Prediction directory not found!&quot;
+                              exit 1
+                                fi
+                        &quot;&quot;&quot;
+  
+                    }
+                }
+            }
+        }
+                    
+      stage(&apos;Send Deployment Frequency Commits to Python Plants Vs Zombies&apos;) {
+            steps {
+                script {
+
+                    // Count the number of commits affecting the PythonPlantsVsZombies directory across all branches in the past day
+                    def commitCountInDir = sh(script: &apos;git log --oneline --all --since=&quot;1 day ago&quot; -- PythonPlantsVsZombies/ | wc -l&apos;, returnStdout: true).trim()
+
+                    // Send this commit count to gateway
+                    sh  &quot;&quot;&quot;
+                        echo &apos;git_commit_frequency_daily_PythonPlantsVsZombies ${commitCountInDir}&apos; | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/git_metrics
+                    &quot;&quot;&quot;
+                }
+            }
+        }
+       
+        stage(&apos;Send Deployment Frequency&apos;) {
+            steps {
+                script {
+                    // Count the number of merges to the main branch
+                    def mergeCount = sh(script: &apos;git log --oneline --merges --since=&quot;1 day ago&quot; origin/main | wc -l&apos;, returnStdout: true).trim()
+
+                    // Send this count to gateway
+                    sh  &quot;&quot;&quot;
+                        echo &apos;git_deployment_frequency_daily ${mergeCount}&apos; | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/git_metrics
+                     &quot;&quot;&quot;
+                }
+            }
+        }
+
+        stage(&apos;Predict based on the current data&apos;) {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: &apos;Test&apos;, passwordVariable: &apos;GIT_PASSWORD&apos;, usernameVariable: &apos;GIT_USERNAME&apos;)]) {
+                           def osType = sh(script: &apos;uname&apos;, returnStdout: true).trim()
+                        if (osType != &quot;Darwin&quot;){ sh &apos;&apos;&apos;
+                            git config credential.helper &apos;store --file=.git/credentials&apos;
+                            echo &quot;https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au&quot; &gt; .git/credentials
+
+                            git checkout feature/update-date
+
+                            if [ -d &quot;Prediction&quot; ]; then
+                                echo $SUDO_PASS | sudo -S docker run --rm -v $(pwd):/workspace -w /workspace -e SNYK_TOKEN=${SNYK_TOKEN} custom-python-snyk-image sh -c &quot;
+                                    cd Prediction
+                                    python3 -m venv myenv
+                                    source myenv/bin/activate
+                                    pip install numpy
+                                    pip install matplotlib
+                                    python3 -u plotGraph.py
+                                    python3 -u plotDeploymentFrequency.py
+                                    python3 -u plotLeadTime.py
+                                    python3 -u plotNoVul.py
+                                    python3 -u plotRuntime.py
+                                    python3 -u plotTestPassRate.py
+                                &quot;
+                                git add Prediction/
+                                git commit -m &quot;Push the prediction picture to the github&quot;
+
+                                git checkout main
+                                git pull origin main
+                                git merge feature/update-date --no-ff --strategy-option theirs -m &quot;Merge feature/update-date into main&quot;
+                                git push origin main
+                            else
+                                echo &quot;Error: Prediction directory not found!&quot;
+                                exit 1
+                            fi
+                        &apos;&apos;&apos;
+                                               } else {sh &apos;&apos;&apos;
+                            git config credential.helper &apos;store --file=.git/credentials&apos;
+                            echo &quot;https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au&quot; &gt; .git/credentials
+
+                            git checkout feature/update-date
+
+                            if [ -d &quot;Prediction&quot; ]; then
+                                docker run --rm -v $(pwd):/workspace -w /workspace -e SNYK_TOKEN=${SNYK_TOKEN} custom-python-snyk-image sh -c &quot;
+                                    cd Prediction
+                                    python3 -m venv myenv
+                                    source myenv/bin/activate
+                                    pip install numpy
+                                    pip install matplotlib
+                                    python3 -u plotGraph.py
+                                    python3 -u plotDeploymentFrequency.py
+                                    python3 -u plotLeadTime.py
+                                    python3 -u plotNoVul.py
+                                    python3 -u plotRuntime.py
+                                    python3 -u plotTestPassRate.py
+                                &quot;
+                                git add Prediction/
+                                git commit -m &quot;Push the prediction picture to the github&quot;
+
+                                git checkout main
+                                git pull origin main
+                                git merge feature/update-date --no-ff --strategy-option theirs -m &quot;Merge feature/update-date into main&quot;
+                                git push origin main
+                            else
+                                echo &quot;Error: Prediction directory not found!&quot;
+                                exit 1
+                            fi
+                        &apos;&apos;&apos;
+                        }
+                        
+                    }
+                }
+            }
+        }
+               stage(&apos;Print Image URLS&apos;) {
+            steps {
+                script {
+
+
+                     // Get the current repository remote URL
+                                def repoURL = sh(script: &quot;git config --get remote.origin.url&quot;, returnStdout: true).trim()
+
+                                // Convert the repository URL from SSH format to HTTPS format if necessary
+                                if (repoURL.startsWith(&quot;git@&quot;)) {
+                                    repoURL = repoURL.replace(&quot;:&quot;, &quot;/&quot;).replace(&quot;git@&quot;, &quot;https://&quot;).replace(&quot;.git&quot;, &quot;&quot;)
+                                }
+                    
+                                // Remove any occurrence of &quot;.git&quot; from the URL
+                                repoURL = repoURL.replace(&quot;.git&quot;, &quot;&quot;)
+
+                                // Fetch all PNG files in the directory
+                                def pngFiles = sh(script: &quot;find Prediction -type f -name &apos;*.png&apos;&quot;, returnStdout: true).trim().split(&quot;\n&quot;)
+                                    
+                                // Print the URL for each PNG file
+                                pngFiles.each { file -&gt;
+                                    echo &quot;URL: ${repoURL}/blob/main/${file}&quot;
+                                }
+                           
+                }
+            }
+        }
+        
+         // This will fail when the fake issues are generated
+        stage(&apos;Fail if vulnerable&apos;) {
+            steps {
+                script {
+
+                    // Check if there are any vulnerabilities detected
+                    def vulnerabilitiesDetected = sh(script: &quot;&quot;&quot;
+                        grep -qE &apos;\\[(Low|Medium|High|Critical) Severity\\]&apos; PythonPlantsVsZombies/snyk_test_output.txt
+                    &quot;&quot;&quot;, returnStatus: true) == 0
+
+                    if (vulnerabilitiesDetected) {
+                        echo &quot;failed due to vulnerabilities being detected.&quot;
+                        exit 1
+                    }
+                }
+            }
+        } 
+        
+         stage(&apos;Copy to Production / Merge&apos;) {
+            steps {
+                script{
+                    def osType = sh(script: &apos;uname&apos;, returnStdout: true).trim()
+                    if (osType == &quot;Darwin&quot;){
+                        withCredentials([usernamePassword(credentialsId: &apos;Test&apos;, passwordVariable: &apos;GIT_PASSWORD&apos;, usernameVariable: &apos;GIT_USERNAME&apos;)]) {
+                                        sh &apos;&apos;&apos;
+                                            git config credential.helper &apos;store --file=.git/credentials&apos;
+                                            echo &quot;https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au&quot; &gt; .git/credentials
+
+                                            # Checkout the feature branch
+                                            git checkout feature/update-date
+
+                                            if [ ! -d &quot;Production&quot; ]; then
+                                                mkdir Production
+                                            fi
+
+                                            if [ -d &quot;PythonPlantsVsZombies&quot; ]; then
+                                                # Check if package.json or package-lock.json exists inside PythonPlantsVsZombies and remove them
+                                                if [ -f &quot;PythonPlantsVsZombies/package.json&quot; ]; then
+                                                    echo &quot;package.json detected inside PythonPlantsVsZombies. Removing it before copying to production.&quot;
+                                                    rm PythonPlantsVsZombies/package.json
+                                                fi
+
+                                                if [ -f &quot;PythonPlantsVsZombies/package-lock.json&quot; ]; then
+                                                    echo &quot;package-lock.json detected inside PythonPlantsVsZombies. Removing it before copying to production.&quot;
+                                                    rm PythonPlantsVsZombies/package-lock.json
+                                                fi
+
+                                                rm -r Production/* &amp;&amp; cp -r PythonPlantsVsZombies/* Production/
+
+                                            
+
+                                                # Modify a text document with the current time
+                                                echo &quot;last commit: $(date)&quot; &gt; Production/last_commit.txt
+
+                                                git add Production/
+                                                git commit -m &quot;Copy PythonPlantsVsZombies to Production directory and update last_commit.txt&quot;
+
+                                                # Checkout main and merge the feature branch
+                                                git checkout main
+                                                git pull origin main
+                                                git merge feature/update-date --no-ff --strategy-option theirs -m &quot;Merge feature/update-date into main&quot;
+                                                git push origin main
+                                            else
+                                                echo &quot;Error: PythonPlantsVsZombies directory not found!&quot;
+                                                exit 1
+                                            fi
+                                        &apos;&apos;&apos;
+                                    }
+                    }else{
+                        withCredentials([usernamePassword(credentialsId: &apos;Test&apos;, passwordVariable: &apos;GIT_PASSWORD&apos;, usernameVariable: &apos;GIT_USERNAME&apos;)]) {
+                                        sh &apos;&apos;&apos;
+                                            git config credential.helper &apos;store --file=.git/credentials&apos;
+                                            echo &quot;https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au&quot; &gt; .git/credentials
+
+                                            # Checkout the feature branch
+                                            git checkout feature/update-date
+
+                                            if [ ! -d &quot;Production&quot; ]; then
+                                                mkdir Production
+                                            fi
+
+                                            if [ -d &quot;PythonPlantsVsZombies&quot; ]; then
+                                                # Check if package.json or package-lock.json exists inside PythonPlantsVsZombies and remove them
+                                                if [ -f &quot;PythonPlantsVsZombies/package.json&quot; ]; then
+                                                    echo &quot;package.json detected inside PythonPlantsVsZombies. Removing it before copying to production.&quot;
+                                                    rm PythonPlantsVsZombies/package.json
+                                                fi
+
+                                                if [ -f &quot;PythonPlantsVsZombies/package-lock.json&quot; ]; then
+                                                    echo &quot;package-lock.json detected inside PythonPlantsVsZombies. Removing it before copying to production.&quot;
+                                                    rm PythonPlantsVsZombies/package-lock.json
+                                                fi
+
+                                                cp -r PythonPlantsVsZombies/* Production/
+
+                                            
+
+                                                # Modify a text document with the current time
+                                                echo &quot;last commit: $(date)&quot; &gt; Production/last_commit.txt
+
+                                                git add Production/
+                                                git commit -m &quot;Copy PythonPlantsVsZombies to Production directory and update last_commit.txt&quot;
+
+                                                # Checkout main and merge the feature branch
+                                                git checkout main
+                                                git pull origin main
+                                                git merge feature/update-date --no-ff --strategy-option theirs -m &quot;Merge feature/update-date into main&quot;
+                                                git push origin main
+                                            else
+                                                echo &quot;Error: PythonPlantsVsZombies directory not found!&quot;
+                                                exit 1
+                                            fi
+                                        &apos;&apos;&apos;
+                                    }
+                    }
+                }
+            
+            }
+        }
+    }
+}
+</script>
+    <loadedScripts class="map"/>
+    <durabilityHint>MAX_SURVIVABILITY</durabilityHint>
+    <timings class="map">
+      <entry>
+        <string>flowNode</string>
+        <long>180591500</long>
+      </entry>
+      <entry>
+        <string>classLoad</string>
+        <long>351895461</long>
+      </entry>
+      <entry>
+        <string>run</string>
+        <long>672440332</long>
+      </entry>
+      <entry>
+        <string>parse</string>
+        <long>273441167</long>
+      </entry>
+      <entry>
+        <string>saveProgram</string>
+        <long>143545625</long>
+      </entry>
+    </timings>
+    <internalCalls class="sorted-set">
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.SyntheticStageNames.checkout</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.Utils.createStepsBlock</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.Utils.getCredsFromResolver</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.Utils.getRestartedStage</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.Utils.updateJobProperties</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.Utils.updateRunAndJobActions</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.agent.impl.Any.getScript</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.agent.impl.Any.hasScmContext</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.agent.impl.Any.inStage</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.agent.impl.Any.isDoCheckout</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.agent.impl.Any.subdirectory</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.model.Agent.&lt;init&gt;</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.model.Agent.getDeclarativeAgent</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.model.Agent.populateMap</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.model.Agent.rawClosure</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.model.Environment$EnvironmentResolver.instanceFromMap</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.model.Environment.&lt;init&gt;</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.model.Root.&lt;init&gt;</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.model.Root.agent</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.model.Root.astUUID</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.model.Root.environment</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.model.Root.getEnvVars</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.model.Root.hasSatisfiedConditions</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.model.Root.libraries</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.model.Root.options</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.model.Root.parameters</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.model.Root.post</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.model.Root.triggers</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.model.Stage.&lt;init&gt;</string>
+      <string>org.jenkinsci.plugins.pipeline.modeldefinition.model.Stages.&lt;init&gt;</string>
+      <string>org.jenkinsci.plugins.workflow.cps.EnvActionImpl.JENKINS_URL</string>
+    </internalCalls>
+    <sandbox>true</sandbox>
+    <iota>16</iota>
+    <head>1:16</head>
+    <done>true</done>
+    <resumeBlocked>false</resumeBlocked>
+  </execution>
+  <completed>true</completed>
+  <checkouts class="hudson.util.PersistedList">
+    <org.jenkinsci.plugins.workflow.job.WorkflowRun_-SCMCheckout>
+      <scm class="hudson.plugins.git.GitSCM" plugin="git@5.2.1">
+        <configVersion>2</configVersion>
+        <userRemoteConfigs>
+          <hudson.plugins.git.UserRemoteConfig>
+            <url>https://github.com/BarrettBytes/DORAAndSASTMetricJenkinsPlugin.git</url>
+            <credentialsId>GitHugh</credentialsId>
+          </hudson.plugins.git.UserRemoteConfig>
+        </userRemoteConfigs>
+        <branches>
+          <hudson.plugins.git.BranchSpec>
+            <name>*/main</name>
+          </hudson.plugins.git.BranchSpec>
+        </branches>
+        <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+        <submoduleCfg class="empty-list"/>
+        <extensions/>
+      </scm>
+      <node></node>
+      <workspace>/Users/JiahaoLU/DORAAndSASTMetricJenkinsPlugin/CD1-main/JenkinsPlugin/demo-plugin/work/jobs/test1/workspace</workspace>
+      <changelogFile>/Users/JiahaoLU/DORAAndSASTMetricJenkinsPlugin/CD1-main/JenkinsPlugin/demo-plugin/work/jobs/test1/builds/4/changelog16333062044911277538.xml</changelogFile>
+      <pollingBaseline class="hudson.scm.SCMRevisionState$None" reference="../../../actions/org.jenkinsci.plugins.workflow.steps.scm.MultiSCMRevisionState/revisionStates/entry/hudson.scm.SCMRevisionState_-None"/>
+    </org.jenkinsci.plugins.workflow.job.WorkflowRun_-SCMCheckout>
+  </checkouts>
+</flow-build>

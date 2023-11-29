@@ -1,21 +1,29 @@
 Manifest-Version: 1.0
-Archiver-Version: Plexus Archiver
-Created-By: Apache Maven
-Built-By: jglick
-Build-Jdk: 1.8.0_112
-Extension-Name: workflow-support
-Specification-Title: The Jenkins Plugins Parent POM Project
-Implementation-Title: workflow-support
-Implementation-Version: 2.14
+Created-By: Maven Archiver 3.6.0
+Build-Jdk-Spec: 11
+Specification-Title: Pipeline: Supporting APIs
+Specification-Version: 0.0
+Implementation-Title: Pipeline: Supporting APIs
+Implementation-Version: 865.v43e78cc44e0d
 Group-Id: org.jenkins-ci.plugins.workflow
+Artifact-Id: workflow-support
 Short-Name: workflow-support
 Long-Name: Pipeline: Supporting APIs
-Url: https://wiki.jenkins-ci.org/display/JENKINS/Pipeline+Supporting+A
- PIs+Plugin
-Plugin-Version: 2.14
-Hudson-Version: 1.642.3
-Jenkins-Version: 1.642.3
-Plugin-Dependencies: workflow-api:2.11,workflow-step-api:2.9,script-se
- curity:1.26
+Url: https://github.com/jenkinsci/workflow-support-plugin
+Compatible-Since-Version: 3.0
+Plugin-Version: 865.v43e78cc44e0d
+Hudson-Version: 2.387.3
+Jenkins-Version: 2.387.3
+Plugin-Dependencies: caffeine-api:3.1.6-115.vb_8b_b_328e59d8,workflow-ap
+ i:1213.v646def1087f9,workflow-step-api:639.v6eca_cd8c04a_a_,scm-api:672
+ .v64378a_b_20c60,script-security:1251.vfe552ed55f8d
 Plugin-Developers: 
+Plugin-License-Name: MIT License
+Plugin-License-Url: https://opensource.org/licenses/MIT
+Plugin-ScmConnection: scm:git:https://github.com/jenkinsci/workflow-supp
+ ort-plugin.git
+Plugin-ScmTag: 43e78cc44e0db1f1293b7e5145fdec437c0379f9
+Plugin-ScmUrl: https://github.com/jenkinsci/workflow-support-plugin
+Plugin-GitHash: 43e78cc44e0db1f1293b7e5145fdec437c0379f9
+Implementation-Build: 43e78cc44e0db1f1293b7e5145fdec437c0379f9
 

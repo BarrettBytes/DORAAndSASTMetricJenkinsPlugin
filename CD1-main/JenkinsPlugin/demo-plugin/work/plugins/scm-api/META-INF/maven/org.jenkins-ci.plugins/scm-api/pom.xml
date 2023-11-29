@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
  ~ The MIT License
  ~
@@ -22,26 +22,17 @@
  ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  ~ THE SOFTWARE.
  -->
-
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-
-  <parent>
-    <groupId>org.jenkins-ci.plugins</groupId>
-    <artifactId>plugin</artifactId>
-    <version>2.22</version>
-    <relativePath />
-  </parent>
-
+  <groupId>org.jenkins-ci.plugins</groupId>
   <artifactId>scm-api</artifactId>
-  <version>2.0.8</version>
+  <version>676.v886669a_199a_a_</version>
   <packaging>hpi</packaging>
-
   <name>SCM API Plugin</name>
-  <description>
-    This plugin provides a new enhanced API for interacting with SCM systems.
-  </description>
-  <url>http://wiki.jenkins-ci.org/display/JENKINS/SCM+API+Plugin</url>
+  <description>The Jenkins Plugins Parent POM Project</description>
+  <url>https://github.com/jenkinsci/scm-api-plugin/blob/master/docs/consumer.adoc</url>
+  <inceptionYear>2016</inceptionYear>
   <licenses>
     <license>
       <name>The MIT license</name>
@@ -49,77 +40,44 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
-
-  <developers>
-    <developer>
-      <id>stephenconnolly</id>
-      <name>Stephen Connolly</name>
-    </developer>
-  </developers>
-
   <scm>
-    <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
-    <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
-    <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
-    <tag>scm-api-2.0.8</tag>
+    <connection>scm:git:https://github.com/jenkinsci/scm-api-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/scm-api-plugin.git</developerConnection>
+    <tag>886669a199aa30665f70efe21abb5a3f49fe4b04</tag>
+    <url>https://github.com/jenkinsci/scm-api-plugin</url>
   </scm>
-
-  <properties>
-    <jenkins.version>1.609.3</jenkins.version>
-    <java.level>6</java.level>
-    <no-test-jar>false</no-test-jar>
-  </properties>
-
+  <distributionManagement>
+    <repository>
+      <id>maven.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/releases/</url>
+    </repository>
+    <snapshotRepository>
+      <id>maven.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/snapshots/</url>
+    </snapshotRepository>
+  </distributionManagement>
+  <dependencies>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>structs</artifactId>
+      <version>324.va_f5d6774f3a_d</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
   <repositories>
     <repository>
       <id>repo.jenkins-ci.org</id>
       <url>https://repo.jenkins-ci.org/public/</url>
     </repository>
   </repositories>
-  <pluginRepositories>
-    <pluginRepository>
-      <id>repo.jenkins-ci.org</id>
-      <url>https://repo.jenkins-ci.org/public/</url>
-    </pluginRepository>
-  </pluginRepositories>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-      <version>1.9.5</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.hamcrest</groupId>
-          <artifactId>hamcrest-core</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.jenkins-ci.plugins</groupId>
-      <artifactId>junit</artifactId>
-      <version>1.6</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.jenkins-ci.plugins</groupId>
-      <artifactId>git</artifactId>
-      <version>2.5.3</version> <!-- 2.4.x does not work since it lacks https://github.com/jenkinsci/git-plugin/pull/402 -->
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
-
   <build>
     <plugins>
       <plugin>
         <groupId>org.jenkins-ci.tools</groupId>
         <artifactId>maven-hpi-plugin</artifactId>
-        <configuration>
-          <compatibleSinceVersion>2.0.0</compatibleSinceVersion>
-        </configuration>
+        <version>3.46</version>
+        <extensions>true</extensions>
       </plugin>
     </plugins>
   </build>
-
 </project>

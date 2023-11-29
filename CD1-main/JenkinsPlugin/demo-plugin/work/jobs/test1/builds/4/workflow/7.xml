@@ -1,0 +1,73 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<Tag plugin="workflow-support@865.v43e78cc44e0d">
+  <node class="cps.n.StepAtomNode" plugin="workflow-cps@3806.va_3a_6988277b_2">
+    <parentIds>
+      <string>6</string>
+    </parentIds>
+    <id>7</id>
+    <descriptorId>org.jenkinsci.plugins.workflow.steps.scm.GenericSCMStep</descriptorId>
+  </node>
+  <actions>
+    <cps.a.ArgumentsActionImpl plugin="workflow-cps@3806.va_3a_6988277b_2">
+      <arguments>
+        <entry>
+          <string>scm</string>
+          <org.jenkinsci.plugins.structs.describable.UninstantiatedDescribable plugin="structs@325.vcb_307d2a_2782">
+            <symbol>scmGit</symbol>
+            <arguments class="tree-map">
+              <entry>
+                <string>branches</string>
+                <list>
+                  <org.jenkinsci.plugins.structs.describable.UninstantiatedDescribable>
+                    <arguments class="tree-map">
+                      <entry>
+                        <string>name</string>
+                        <string>*/main</string>
+                      </entry>
+                    </arguments>
+                    <model resolves-to="org.jenkinsci.plugins.structs.describable.DescribableModel$SerializedForm">
+                      <type>hudson.plugins.git.BranchSpec</type>
+                    </model>
+                  </org.jenkinsci.plugins.structs.describable.UninstantiatedDescribable>
+                </list>
+              </entry>
+              <entry>
+                <string>extensions</string>
+                <list/>
+              </entry>
+              <entry>
+                <string>userRemoteConfigs</string>
+                <list>
+                  <org.jenkinsci.plugins.structs.describable.UninstantiatedDescribable>
+                    <arguments class="tree-map">
+                      <entry>
+                        <string>credentialsId</string>
+                        <string>GitHugh</string>
+                      </entry>
+                      <entry>
+                        <string>url</string>
+                        <string>https://github.com/BarrettBytes/DORAAndSASTMetricJenkinsPlugin.git</string>
+                      </entry>
+                    </arguments>
+                    <model resolves-to="org.jenkinsci.plugins.structs.describable.DescribableModel$SerializedForm">
+                      <type>hudson.plugins.git.UserRemoteConfig</type>
+                    </model>
+                  </org.jenkinsci.plugins.structs.describable.UninstantiatedDescribable>
+                </list>
+              </entry>
+            </arguments>
+            <model resolves-to="org.jenkinsci.plugins.structs.describable.DescribableModel$SerializedForm">
+              <type>hudson.plugins.git.GitSCM</type>
+            </model>
+          </org.jenkinsci.plugins.structs.describable.UninstantiatedDescribable>
+        </entry>
+      </arguments>
+      <sensitiveVariables/>
+      <isUnmodifiedBySanitization>true</isUnmodifiedBySanitization>
+    </cps.a.ArgumentsActionImpl>
+    <wf.a.TimingAction plugin="workflow-api@1283.v99c10937efcb_">
+      <startTime>1701262073682</startTime>
+    </wf.a.TimingAction>
+    <s.a.LogStorageAction/>
+  </actions>
+</Tag>

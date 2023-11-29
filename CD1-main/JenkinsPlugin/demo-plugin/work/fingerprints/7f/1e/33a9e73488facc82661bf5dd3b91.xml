@@ -1,0 +1,19 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<fingerprint>
+  <timestamp>2023-11-29 12:11:52.684 UTC</timestamp>
+  <md5sum>7f1e33a9e73488facc82661bf5dd3b91</md5sum>
+  <fileName>Credential id=GitHugh name=hughlujh@gmail.com/****** (GitHugh)</fileName>
+  <usages>
+    <entry>
+      <string>test1</string>
+      <ranges>4</ranges>
+    </entry>
+  </usages>
+  <facets>
+    <com.cloudbees.plugins.credentials.fingerprints.ItemCredentialsFingerprintFacet plugin="credentials@1309.v8835d63eb_d8a_">
+      <timestamp>1701261992609</timestamp>
+      <itemFullName>test1</itemFullName>
+      <timestamp0>1701261743929</timestamp0>
+    </com.cloudbees.plugins.credentials.fingerprints.ItemCredentialsFingerprintFacet>
+  </facets>
+</fingerprint>

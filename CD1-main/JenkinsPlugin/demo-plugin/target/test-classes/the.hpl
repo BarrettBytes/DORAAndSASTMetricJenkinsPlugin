@@ -4,7 +4,7 @@ Artifact-Id: demo
 Short-Name: demo
 Long-Name: TODO Plugin
 Url: https://github.com/jenkinsci/demo-plugin
-Plugin-Version: 1.0-SNAPSHOT (private-8a9e3c02-khiya)
+Plugin-Version: 1.0-SNAPSHOT (private-814b18ad-JiahaoLU)
 Hudson-Version: 2.387.3
 Jenkins-Version: 2.387.3
 Plugin-Dependencies: workflow-cps:2.41,workflow-job:2.15,structs:1.23
@@ -14,12 +14,11 @@ Plugin-License-Url: https://opensource.org/license/mit/
 Plugin-ScmConnection: scm:git:https://github.com/jenkinsci/demo-plugin
 Plugin-ScmTag: HEAD
 Plugin-ScmUrl: https://github.com/jenkinsci/demo-plugin
-Plugin-GitHash: 8a9e3c0234aac7e3bbe0f539b67fdce6e7d349ca
-Implementation-Build: 8a9e3c0234aac7e3bbe0f539b67fdce6e7d349ca
-Libraries: /mnt/c/Users/khiya/Desktop/CDProj/DORAAndSASTMetricJenkinsPlu
- gin/CD1-main/JenkinsPlugin/demo-plugin/src/main/resources,/mnt/c/Users/
- khiya/Desktop/CDProj/DORAAndSASTMetricJenkinsPlugin/CD1-main/JenkinsPlu
- gin/demo-plugin/target/classes
-Resource-Path: /mnt/c/Users/khiya/Desktop/CDProj/DORAAndSASTMetricJenkin
- sPlugin/CD1-main/JenkinsPlugin/demo-plugin/src/main/webapp
+Plugin-GitHash: 814b18ad48b0c73709c55922aa7fe7800445276c
+Implementation-Build: 814b18ad48b0c73709c55922aa7fe7800445276c
+Libraries: /Users/JiahaoLU/DORAAndSASTMetricJenkinsPlugin/CD1-main/Jenki
+ nsPlugin/demo-plugin/src/main/resources,/Users/JiahaoLU/DORAAndSASTMetr
+ icJenkinsPlugin/CD1-main/JenkinsPlugin/demo-plugin/target/classes
+Resource-Path: /Users/JiahaoLU/DORAAndSASTMetricJenkinsPlugin/CD1-main/J
+ enkinsPlugin/demo-plugin/src/main/webapp
 
