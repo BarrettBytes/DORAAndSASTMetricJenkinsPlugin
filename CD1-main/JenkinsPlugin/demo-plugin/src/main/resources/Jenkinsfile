@@ -160,6 +160,11 @@ pipeline {
             steps {
                 script {
                     def osType = sh(script: 'uname', returnStdout: true).trim()
+                    if (osType != "Darwin") {
+                        // Add the Jenkins agent user to the docker group
+                        sh 'sudo usermod -aG docker $USER'
+                        sh 'sudo service docker restart'
+                    }
                     if (osType == "Darwin") {
                         def pythonCheck = sh(script: 'python3 --version', returnStatus: true)
                         if (pythonCheck != 0) {
@@ -181,7 +186,27 @@ pipeline {
                         } else {
                             echo 'pip3 already installed.'
                         }
-                        
+                        sh 'docker pull python:3.11' 
+                        def dockerfileContent = """
+                            # Start with a Node.js base image
+                            FROM node:16.14 AS node-base
+
+                            # Clear npm cache and install required global npm packages
+                            RUN npm cache clean -f && npm install -g pnpm snyk@1.1229.0
+
+                            # Switch to a Python image for Python-specific tasks
+                            FROM python:3.11
+
+                            # Copy other files and perform additional setup if needed
+                            COPY PythonPlantsVsZombies/Requirements.txt /workspace/PythonPlantsVsZombies/Requirements.txt
+
+                            # Install necessary packages
+                            RUN python3 -m venv /workspace/PythonPlantsVsZombies/myenv
+                            RUN /bin/bash -c "source /workspace/PythonPlantsVsZombies/myenv/bin/activate && pip install -r /workspace/PythonPlantsVsZombies/Requirements.txt"
+
+                        """
+                        writeFile file: 'Dockerfile', text: dockerfileContent
+                        sh 'sudo -S docker build -t custom-python-snyk-image -f Dockerfile .'
                     } else {
                         // Linux setup - You can keep your existing Linux Docker setup here
                         def dockerfileContent = """
@@ -222,7 +247,7 @@ pipeline {
             }
         }
         
-        stage('Build Docker Image') {
+       /*   stage('Build Docker Image') {
             steps {
                 script {
                     def osType = sh(script: 'uname', returnStdout: true).trim()
@@ -231,7 +256,7 @@ pipeline {
                     }
                 }
             }
-        }
+        } */
 
         stage('Check PythonPlantsVsZombies in Docker') {
             steps {
@@ -239,11 +264,11 @@ pipeline {
                     def osType = sh(script: 'uname', returnStdout: true).trim()
                     if (osType != "Darwin") {
                     // Run a Docker command to check if the PythonPlantsVsZombies directory exists inside the container
-                        def dirExists = sh(script: 'docker run --rm -v $(pwd):/workspace -w /workspace custom-python-snyk-image sh -c "[ -d PythonPlantsVsZombies ] && echo exists || echo not exists"', returnStdout: true).trim()
+                        def dirExists = sh(script: 'echo $SUDO_PASS | sudo -S docker run --rm -v $(pwd):/workspace -w /workspace custom-python-snyk-image sh -c "[ -d PythonPlantsVsZombies ] && echo exists || echo not exists"', returnStdout: true).trim()
                         if (dirExists == "exists") {
                             echo "PythonPlantsVsZombies directory exists inside the Docker container."
                             // Print the file structure of the directory inside the Docker container
-                            sh 'docker run --rm -v $(pwd):/workspace -w /workspace custom-python-snyk-image sh -c "ls -la PythonPlantsVsZombies"'
+                            sh 'echo $SUDO_PASS | sudo -S docker run --rm -v $(pwd):/workspace -w /workspace custom-python-snyk-image sh -c "ls -la PythonPlantsVsZombies"'
                         } else {
                             echo "PythonPlantsVsZombies directory does not exist inside the Docker container."
                         }
@@ -269,12 +294,11 @@ pipeline {
                 script {
                     def osType = sh(script: 'uname', returnStdout: true).trim()
                     if (osType == "Darwin"){
-                        // Capture the start time
+                         // Capture the start time
                         def startTime = System.currentTimeMillis()
-                            sh '''
+                           sh '''
+                            docker run --rm -v $(pwd):/workspace -w /workspace -e SNYK_TOKEN=${SNYK_TOKEN} custom-python-snyk-image sh -c "
                                 cd PythonPlantsVsZombies
-                                pwd
-                                ls
                                 python3 -m venv myenv
                                 source myenv/bin/activate
                                 pip install -r Requirements.txt
@@ -282,8 +306,8 @@ pipeline {
                                 snyk test --package-manager=pip --file=Requirements.txt > snyk_test_output.txt                          
                                 cat snyk_test_output.txt
                                 exit 0
-                                "
-                            '''
+                            "
+                        '''
 
                         // Calculate the duration in seconds
                         def duration = (System.currentTimeMillis() - startTime) / 1000
@@ -293,7 +317,7 @@ pipeline {
                         // Capture the start time
                         def startTime = System.currentTimeMillis()
                         sh '''
-                            docker run --rm -v $(pwd):/workspace -w /workspace -e SNYK_TOKEN=${SNYK_TOKEN} custom-python-snyk-image sh -c "
+                            echo $SUDO_PASS | sudo -S docker run --rm -v $(pwd):/workspace -w /workspace -e SNYK_TOKEN=${SNYK_TOKEN} custom-python-snyk-image sh -c "
                                 cd PythonPlantsVsZombies
                                  python3 -m venv myenv
                                 source myenv/bin/activate
@@ -380,9 +404,9 @@ pipeline {
                     
                     // Define the weight mapping for each rating
                     def weightMap = [
-                        'Low': 1,
-                        'Medium': 2,
-                        'High': 5,
+                        'Low': 3.9,
+                        'Medium': 6.9,
+                        'High': 8.9,
                         'Critical': 10
                     ]
 
@@ -412,11 +436,45 @@ pipeline {
                         echo "snyk_scan_duration_seconds_${syncScanDurationCounter}{instance=\\"${env.NODE_NAME}\\"} ${env.SNYK_SCAN_DURATION}" | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/snyk_scan
                     """
                     syncScanDurationCounter++
+                    def mergeCount = sh(script: 'git log --oneline --merges --since="1 day ago" origin/main | wc -l', returnStdout: true).trim()
+                    def totalNumVulnerabilities = totalVulnerabilities['Low'] + totalVulnerabilities['Medium'] + totalVulnerabilities['High'] + totalVulnerabilities['Critical']
+                    def snykScanDuration = env.SNYK_SCAN_DURATION
+                    withCredentials([usernamePassword(credentialsId: 'Test', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                        sh """
+                            git config credential.helper 'store --file=.git/credentials'
+                            echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au" > .git/credentials
+                            
+                            # Checkout the feature branch
+                            git checkout feature/update-date
+
+                            if [ -d "Prediction" ]; then
+                                # append new data for prediction
+                                echo "deployment_frequency = ${mergeCount}, CVSSscores = ${totalWeightedScore}" >> Prediction/predictionData_deploymentCVSS.txt
+
+                                echo "Num_vulnerabilities = ${totalNumVulnerabilities}" >> Prediction/predictionData_NoVul.txt
+                                
+                                echo "deployment_frequency = ${mergeCount}" >> Prediction/predictionData_deployment.txt
+                                echo "SAST_Runtime = ${snykScanDuration}" >> Prediction/predictionData_Runtime.txt
+                                git add Prediction/
+                                git commit -m "Append new data for prediction"
+                              
+                                # Checkout main and merge the feature branch
+                                 #   git checkout main
+                                 #   git pull origin main
+                                 #   git merge feature/update-date --no-ff --strategy-option theirs -m "Merge feature/update-date into main"
+                                 #   git push origin main
+                                else
+                                  echo "Error: Prediction directory not found!"
+                              exit 1
+                                fi
+                        """
+  
+                    }
                 }
             }
         }
-        
-        stage('Send Deployment Frequency Commits to Python Plants Vs Zombies') {
+                    
+      stage('Send Deployment Frequency Commits to Python Plants Vs Zombies') {
             steps {
                 script {
 
@@ -430,9 +488,125 @@ pipeline {
                 }
             }
         }
+       
+        stage('Send Deployment Frequency') {
+            steps {
+                script {
+                    // Count the number of merges to the main branch
+                    def mergeCount = sh(script: 'git log --oneline --merges --since="1 day ago" origin/main | wc -l', returnStdout: true).trim()
+
+                    // Send this count to gateway
+                    sh  """
+                        echo 'git_deployment_frequency_daily ${mergeCount}' | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/git_metrics
+                     """
+                }
+            }
+        }
+
+        stage('Predict based on the current data') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'Test', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                           def osType = sh(script: 'uname', returnStdout: true).trim()
+                        if (osType != "Darwin"){ sh '''
+                            git config credential.helper 'store --file=.git/credentials'
+                            echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au" > .git/credentials
+
+                            git checkout feature/update-date
+
+                            if [ -d "Prediction" ]; then
+                                echo $SUDO_PASS | sudo -S docker run --rm -v $(pwd):/workspace -w /workspace -e SNYK_TOKEN=${SNYK_TOKEN} custom-python-snyk-image sh -c "
+                                    cd Prediction
+                                    python3 -m venv myenv
+                                    source myenv/bin/activate
+                                    pip install numpy
+                                    pip install matplotlib
+                                    python3 -u plotGraph.py
+                                    python3 -u plotDeploymentFrequency.py
+                                    python3 -u plotLeadTime.py
+                                    python3 -u plotNoVul.py
+                                    python3 -u plotRuntime.py
+                                    python3 -u plotTestPassRate.py
+                                "
+                                git add Prediction/
+                                git commit -m "Push the prediction picture to the github"
+
+                                git checkout main
+                                git pull origin main
+                                git merge feature/update-date --no-ff --strategy-option theirs -m "Merge feature/update-date into main"
+                                git push origin main
+                            else
+                                echo "Error: Prediction directory not found!"
+                                exit 1
+                            fi
+                        '''
+                                               } else {sh '''
+                            git config credential.helper 'store --file=.git/credentials'
+                            echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au" > .git/credentials
+
+                            git checkout feature/update-date
+
+                            if [ -d "Prediction" ]; then
+                                docker run --rm -v $(pwd):/workspace -w /workspace -e SNYK_TOKEN=${SNYK_TOKEN} custom-python-snyk-image sh -c "
+                                    cd Prediction
+                                    python3 -m venv myenv
+                                    source myenv/bin/activate
+                                    pip install numpy
+                                    pip install matplotlib
+                                    python3 -u plotGraph.py
+                                    python3 -u plotDeploymentFrequency.py
+                                    python3 -u plotLeadTime.py
+                                    python3 -u plotNoVul.py
+                                    python3 -u plotRuntime.py
+                                    python3 -u plotTestPassRate.py
+                                "
+                                git add Prediction/
+                                git commit -m "Push the prediction picture to the github"
+
+                                git checkout main
+                                git pull origin main
+                                git merge feature/update-date --no-ff --strategy-option theirs -m "Merge feature/update-date into main"
+                                git push origin main
+                            else
+                                echo "Error: Prediction directory not found!"
+                                exit 1
+                            fi
+                        '''
+                        }
+                        
+                    }
+                }
+            }
+        }
+               stage('Print Image URLS') {
+            steps {
+                script {
 
 
-        // This will fail when the fake issues are generated
+                     // Get the current repository remote URL
+                                def repoURL = sh(script: "git config --get remote.origin.url", returnStdout: true).trim()
+
+                                // Convert the repository URL from SSH format to HTTPS format if necessary
+                                if (repoURL.startsWith("git@")) {
+                                    repoURL = repoURL.replace(":", "/").replace("git@", "https://").replace(".git", "")
+                                }
+                    
+                                // Remove any occurrence of ".git" from the URL
+                                repoURL = repoURL.replace(".git", "")
+
+                                // Fetch all PNG files in the directory
+                                def pngFiles = sh(script: "find Prediction -type f -name '*.png'", returnStdout: true).trim().split("\n")
+                                    
+                                // Print the URL for each PNG file
+                                pngFiles.each { file ->
+                                    echo "URL: ${repoURL}/blob/main/${file}"
+                                }
+                           
+                }
+            }
+        }
+        
+         // This will fail when the fake issues are generated
         stage('Fail if vulnerable') {
             steps {
                 script {
@@ -448,67 +622,107 @@ pipeline {
                     }
                 }
             }
-        }
-
-        stage('Copy to Production / Merge') {
+        } 
+        
+         stage('Copy to Production / Merge') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'Test', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-                    sh '''
-                        git config credential.helper 'store --file=.git/credentials'
-                        echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au" > .git/credentials
+                script{
+                    def osType = sh(script: 'uname', returnStdout: true).trim()
+                    if (osType == "Darwin"){
+                        withCredentials([usernamePassword(credentialsId: 'Test', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                                        sh '''
+                                            git config credential.helper 'store --file=.git/credentials'
+                                            echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au" > .git/credentials
 
-                        # Checkout the feature branch
-                        git checkout feature/update-date
+                                            # Checkout the feature branch
+                                            git checkout feature/update-date
 
-                        if [ ! -d "production" ]; then
-                            mkdir production
-                        fi
+                                            if [ ! -d "Production" ]; then
+                                                mkdir Production
+                                            fi
 
-                        if [ -d "PythonPlantsVsZombies" ]; then
-                            # Check if package.json or package-lock.json exists inside PythonPlantsVsZombies and remove them
-                            if [ -f "PythonPlantsVsZombies/package.json" ]; then
-                                echo "package.json detected inside PythonPlantsVsZombies. Removing it before copying to production."
-                                rm PythonPlantsVsZombies/package.json
-                            fi
+                                            if [ -d "PythonPlantsVsZombies" ]; then
+                                                # Check if package.json or package-lock.json exists inside PythonPlantsVsZombies and remove them
+                                                if [ -f "PythonPlantsVsZombies/package.json" ]; then
+                                                    echo "package.json detected inside PythonPlantsVsZombies. Removing it before copying to production."
+                                                    rm PythonPlantsVsZombies/package.json
+                                                fi
 
-                            if [ -f "PythonPlantsVsZombies/package-lock.json" ]; then
-                                echo "package-lock.json detected inside PythonPlantsVsZombies. Removing it before copying to production."
-                                rm PythonPlantsVsZombies/package-lock.json
-                            fi
+                                                if [ -f "PythonPlantsVsZombies/package-lock.json" ]; then
+                                                    echo "package-lock.json detected inside PythonPlantsVsZombies. Removing it before copying to production."
+                                                    rm PythonPlantsVsZombies/package-lock.json
+                                                fi
 
-                            cp -r PythonPlantsVsZombies/* production/
+                                                rm -r Production/* && cp -r PythonPlantsVsZombies/* Production/
 
-                            # Modify a text document with the current time
-                            echo "last commit: $(date)" > production/last_commit.txt
+                                            
 
-                            git add production/
-                            git commit -m "Copy PythonPlantsVsZombies to production directory and update last_commit.txt"
+                                                # Modify a text document with the current time
+                                                echo "last commit: $(date)" > Production/last_commit.txt
 
-                            # Checkout main and merge the feature branch
-                            git checkout main
-                            git pull origin main
-                            git merge feature/update-date --no-ff --strategy-option theirs -m "Merge feature/update-date into main"
-                            git push origin main
-                        else
-                            echo "Error: PythonPlantsVsZombies directory not found!"
-                            exit 1
-                        fi
-                    '''
+                                                git add Production/
+                                                git commit -m "Copy PythonPlantsVsZombies to Production directory and update last_commit.txt"
+
+                                                # Checkout main and merge the feature branch
+                                                git checkout main
+                                                git pull origin main
+                                                git merge feature/update-date --no-ff --strategy-option theirs -m "Merge feature/update-date into main"
+                                                git push origin main
+                                            else
+                                                echo "Error: PythonPlantsVsZombies directory not found!"
+                                                exit 1
+                                            fi
+                                        '''
+                                    }
+                    }else{
+                        withCredentials([usernamePassword(credentialsId: 'Test', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                                        sh '''
+                                            git config credential.helper 'store --file=.git/credentials'
+                                            echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.cs.adelaide.edu.au" > .git/credentials
+
+                                            # Checkout the feature branch
+                                            git checkout feature/update-date
+
+                                            if [ ! -d "Production" ]; then
+                                                mkdir Production
+                                            fi
+
+                                            if [ -d "PythonPlantsVsZombies" ]; then
+                                                # Check if package.json or package-lock.json exists inside PythonPlantsVsZombies and remove them
+                                                if [ -f "PythonPlantsVsZombies/package.json" ]; then
+                                                    echo "package.json detected inside PythonPlantsVsZombies. Removing it before copying to production."
+                                                    rm PythonPlantsVsZombies/package.json
+                                                fi
+
+                                                if [ -f "PythonPlantsVsZombies/package-lock.json" ]; then
+                                                    echo "package-lock.json detected inside PythonPlantsVsZombies. Removing it before copying to production."
+                                                    rm PythonPlantsVsZombies/package-lock.json
+                                                fi
+
+                                                cp -r PythonPlantsVsZombies/* Production/
+
+                                            
+
+                                                # Modify a text document with the current time
+                                                echo "last commit: $(date)" > Production/last_commit.txt
+
+                                                git add Production/
+                                                git commit -m "Copy PythonPlantsVsZombies to Production directory and update last_commit.txt"
+
+                                                # Checkout main and merge the feature branch
+                                                git checkout main
+                                                git pull origin main
+                                                git merge feature/update-date --no-ff --strategy-option theirs -m "Merge feature/update-date into main"
+                                                git push origin main
+                                            else
+                                                echo "Error: PythonPlantsVsZombies directory not found!"
+                                                exit 1
+                                            fi
+                                        '''
+                                    }
+                    }
                 }
-            }
-        }
-
-        stage('Send Deployment Frequency Merges') {
-            steps {
-                script {
-                    // Count the number of merges to the main branch
-                    def mergeCount = sh(script: 'git log --oneline --merges --since="1 day ago" origin/main | wc -l', returnStdout: true).trim()
-
-                    // Send this count to gateway
-                    sh  """
-                        echo 'git_deployment_frequency_daily ${mergeCount}' | curl --data-binary @- http://${JENKINS_HOST}:9091/metrics/job/git_metrics
-                     """
-                }
+            
             }
         }
     }

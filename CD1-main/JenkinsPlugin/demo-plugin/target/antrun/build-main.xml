@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="maven-antrun-" default="main">
   <target name="main">
-    <mkdir dir="/mnt/c/Users/khiya/OneDrive/Desktop/CDProj/DORAAndSASTMetricJenkinsPlugin/CD1-main/JenkinsPlugin/demo-plugin/target/tmp" />
+    <mkdir dir="/mnt/c/Users/khiya/Desktop/CDProj/DORAAndSASTMetricJenkinsPlugin/CD1-main/JenkinsPlugin/demo-plugin/target/tmp" />
   </target>
 </project>
