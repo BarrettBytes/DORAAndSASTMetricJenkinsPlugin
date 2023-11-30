@@ -33,10 +33,23 @@
         <spotless.check.skip>false</spotless.check.skip>
     </properties>
     <dependencies>
+    <!-- Jenkins Git plugin dependency -->
+    <dependency>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>git</artifactId>
+        <version>4.10.0</version> <!-- Adjust version as needed -->
+    </dependency>
+
+    <!-- Jenkins Credentials Plugin dependency -->
+    <dependency>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>credentials</artifactId>
+        <version>1309.v8835d63eb_d8a_</version> <!-- Adjust version as needed -->
+    </dependency>
     <dependency>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>structs</artifactId>
-        <version>1.23</version> <!-- Add the appropriate version here -->
+        <version>324.va_f5d6774f3a_d</version> <!-- Add the appropriate version here -->
     </dependency>
     <dependency>
         <groupId>org.jenkins-ci.plugins.workflow</groupId>

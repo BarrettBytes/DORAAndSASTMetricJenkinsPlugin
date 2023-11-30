@@ -1,3 +1,4 @@
+caffeine-api
 workflow-api
 workflow-basic-steps
 workflow-cps
@@ -7,11 +8,19 @@ workflow-scm-step
 workflow-step-api
 workflow-support
 apache-httpcomponents-client-4-api
+credentials-binding
+credentials
 display-url-api
 durable-task
+git-client
+git
+jsch
 mailer
+plain-credentials
 scm-api
 script-security
+ssh-credentials
 structs
+trilead-api
 ace-editor
 jquery-detached

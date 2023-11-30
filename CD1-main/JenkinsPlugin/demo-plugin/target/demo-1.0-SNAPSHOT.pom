@@ -34,8 +34,20 @@
   <dependencies>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>git</artifactId>
+      <version>4.10.0</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>credentials</artifactId>
+      <version>1309.v8835d63eb_d8a_</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>structs</artifactId>
-      <version>1.23</version>
+      <version>324.va_f5d6774f3a_d</version>
       <scope>compile</scope>
     </dependency>
     <dependency>

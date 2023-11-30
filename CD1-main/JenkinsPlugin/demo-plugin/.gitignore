@@ -1,0 +1,8 @@
+# Ignore everything in target and work directories
+# target created with mvn clean package -DskipTests
+# work not needed but created with hpi::run
+target/*
+work/*
+
+# But not .hpi files
+!target/*.hpi
