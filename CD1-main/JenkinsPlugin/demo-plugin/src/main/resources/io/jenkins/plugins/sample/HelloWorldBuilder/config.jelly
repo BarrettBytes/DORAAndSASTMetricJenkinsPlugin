@@ -3,8 +3,11 @@
     <f:entry title="${%Name}" field="name">
         <f:textbox />
     </f:entry>
-    
-    <f:entry title="${%Git Credentials}" field="gitCredentialsId">
+    <f:entry title="Credentials" field="credentialsId">
+    <f:dropdownList items="${it.descriptor.doFillCredentialsIdItems()}" />
+</f:entry>
+
+    <f:entry title="${%Git Credentials}" field="gitCredentialsIdItems">
         <c:select/>   
     </f:entry>
     
@@ -25,7 +28,7 @@
     <f:entry title="${%Repository URL}" field="repositoryUrl">
         <f:textbox />
     </f:entry>
-    
+
     <f:entry title="${%Enable Git Checkout}" field="enableGitCheckout">
         <f:checkbox />
     </f:entry>

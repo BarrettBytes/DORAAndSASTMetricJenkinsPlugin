@@ -3,7 +3,10 @@ package io.jenkins.plugins.sample;
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
+import org.kohsuke.stapler.interceptor.RequirePOST;
+
 
 import hudson.EnvVars;
 import hudson.Extension;
@@ -24,6 +27,9 @@ import hudson.plugins.git.extensions.GitSCMExtension;
 import hudson.plugins.git.extensions.impl.CloneOption;
 import hudson.security.ACL;
 import hudson.security.AccessControlled;
+import com.cloudbees.plugins.credentials.common.StandardCredentials;
+import hudson.util.ListBoxModel;
+
 import hudson.tasks.Builder;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.util.FormValidation;
@@ -50,11 +56,24 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.verb.POST;
 
 import java.io.File;
+
+import hudson.model.AbstractProject;
+import hudson.model.Descriptor;
+import hudson.util.ListBoxModel;
+import org.jenkinsci.plugins.workflow.steps.StepContext;
+import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
+
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
+
+import hudson.model.AbstractProject;
+import hudson.model.Descriptor;
+import hudson.util.ListBoxModel;
+
 import java.util.Queue;
 
 import javax.servlet.ServletException;
@@ -91,52 +110,48 @@ public class HelloWorldBuilder extends Builder implements SimpleBuildStep {
     private String dockerCredentialsId;
     private String SUDO_password;
     private String repositoryUrl;
+    private String credentialsId;
     private boolean enableGitCheckout;
 
-    public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
+    public ListBoxModel doFillGitCredentialsIdItems() {
         ListBoxModel result = new ListBoxModel();
-        result.add(""); // Add an empty option
-    
-        // Initialize variables
-        boolean foundCurrentValue = false;
-        String id = ""; // You need to define the appropriate type for 'id'
-    
-        // Populate the list with credentials
+
+        // Add all credentials to the dropdown
         for (StandardUsernamePasswordCredentials cred : CredentialsProvider.lookupCredentials(
-                StandardUsernamePasswordCredentials.class, Jenkins.getInstance(), ACL.SYSTEM, Collections.emptyList())) {
+                StandardUsernamePasswordCredentials.class, Jenkins.getInstanceOrNull(), ACL.SYSTEM, Collections.emptyList())) {
             result.add(cred.getUsername(), cred.getId());
-    
-            // Check if the current credential is the selected one
-            if (!foundCurrentValue && cred.getId().equals(credentialsId)) {
-                foundCurrentValue = true;
-            }
         }
-    
-        // If the current value wasn't found, add it as a new option
-        if (!foundCurrentValue && credentialsId != null && !credentialsId.isEmpty()) {
-            result.add(credentialsId, credentialsId);
-    
-            // Set the selected option
-            for (ListBoxModel.Option option : result) {
-                if (option.value.equals(credentialsId)) {
-                    option.selected = true;
-                    break;
-                }
-            }
-        }
-    
+
+        return result;
+    }
+
+    @RequirePOST
+    public ListBoxModel doFillCredentialsIdItems(@AncestorInPath AbstractProject project) {
+        StandardListBoxModel result = new StandardListBoxModel();
+        result.includeEmptyValue();
+        result.includeMatchingAs(
+                ACL.SYSTEM,
+                Jenkins.getInstanceOrNull(),
+                StandardCredentials.class,
+                Collections.emptyList(),
+                CredentialsMatchers.always()
+        );
         return result;
     }
     
-    
-
 
     @DataBoundConstructor
-    public HelloWorldBuilder(String name) {
-        this.name = name;
-        this.gitCredentialsId = gitCredentialsId;
-        this.dockerCredentialsId = dockerCredentialsId;
-        this.SUDO_password = SUDO_password;
+public HelloWorldBuilder(String name, String gitCredentialsId, String dockerCredentialsId, String SUDO_password, String credentialsId) {
+    this.name = name;
+    this.gitCredentialsId = gitCredentialsId;
+    this.dockerCredentialsId = dockerCredentialsId;
+    this.SUDO_password = SUDO_password;
+    this.credentialsId = credentialsId;
+}
+
+
+    public String getCredentialsId() {
+        return this.credentialsId;
     }
 
     @DataBoundSetter
