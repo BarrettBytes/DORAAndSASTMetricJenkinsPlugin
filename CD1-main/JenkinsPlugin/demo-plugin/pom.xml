@@ -37,7 +37,7 @@
     <properties>
         <revision>1.0</revision>
         <changelist>-SNAPSHOT</changelist>
-        <jenkins.version>2.387.3</jenkins.version>
+        <jenkins.version>2.443</jenkins.version>
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
         <spotless.check.skip>false</spotless.check.skip>
     </properties>
@@ -49,12 +49,18 @@
             <artifactId>git</artifactId>
             <version>4.10.0</version> <!-- Dependency for Git integration -->
         </dependency>
-        
+
+        <dependency>
+            <groupId>com.google.errorprone</groupId>
+            <artifactId>error_prone_annotations</artifactId>
+            <version>2.23.0</version>
+        </dependency>
+
         <!-- Jenkins Core dependency (provided scope) -->
         <dependency>
             <groupId>org.jenkins-ci.main</groupId>
             <artifactId>jenkins-core</artifactId>
-            <version>2.426</version>
+            <version>2.441</version>
             <scope>provided</scope>
         </dependency>
 
@@ -64,6 +70,11 @@
   <version>1.263</version>
 </dependency>
 
+ <dependency>
+    <groupId>org.jenkins-ci.plugins.workflow</groupId>
+    <artifactId>workflow-step-api</artifactId>
+    <version>657.v03b_e8115821b_</version>
+</dependency>
 
    <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
@@ -77,7 +88,6 @@
             <version>1.0.2</version>
             <optional>true</optional>
         </dependency>
-
 
         <dependency>
         <groupId>org.jenkins-ci.plugins</groupId>
@@ -96,7 +106,7 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>structs</artifactId>
-            <version>324.va_f5d6774f3a_d</version>
+            <version>325.vcb_307d2a_2782</version>
         </dependency>
         
         <!-- Jenkins Workflow Basic Steps dependency (for testing) -->

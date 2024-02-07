@@ -216,60 +216,69 @@ public HelloWorldBuilder(String name, String gitCredentialsId, String dockerCred
     
         
               Jenkins jenkins = Jenkins.get();
-    if (jenkins == null) {
-        listener.getLogger().println("Jenkins instance is null.");
-        return;
-    }
+            if (jenkins == null) {
+                listener.getLogger().println("Jenkins instance is null.");
+                return;
+            }
 
-    if (enableGitCheckout && repositoryUrl != null && !repositoryUrl.isEmpty()) {
-        checkoutRepository(workspace, listener, run, launcher, repositoryUrl, gitCredentials);
+            if (enableGitCheckout && repositoryUrl != null && !repositoryUrl.isEmpty()) {
+                checkoutRepository(workspace, listener, run, launcher, repositoryUrl, gitCredentials);
 
-    }
+            }
 
   
-  // Read the Jenkinsfile from the plugin resources
-InputStream jenkinsfileStream = getClass().getClassLoader().getResourceAsStream("Jenkinsfile");
-if (jenkinsfileStream == null) {
-    listener.getLogger().println("Jenkinsfile resource not found in plugin.");
-    return;
-}
-
-        // Create a FilePath object for the destination
-        FilePath jenkinsfilePath = new FilePath(workspace, "Jenkinsfile");
-
-        // Copy the Jenkinsfile to the workspace
-        jenkinsfilePath.copyFrom(jenkinsfileStream);
-
-        listener.getLogger().println("Jenkinsfile copied to workspace.");
-
-    if (!jenkinsfilePath.exists()) {
-        listener.getLogger().println("Jenkinsfile does not exist in the workspace.");
+    // Read the Jenkinsfile from the plugin resources
+    InputStream jenkinsfileStream = getClass().getClassLoader().getResourceAsStream("Jenkinsfile");
+    if (jenkinsfileStream == null) {
+        listener.getLogger().println("Jenkinsfile resource not found in plugin.");
         return;
     }
 
-    String jenkinsfileContent = jenkinsfilePath.readToString();
+            // Create a FilePath object for the destination
+            FilePath jenkinsfilePath = new FilePath(workspace, "Jenkinsfile");
 
-        WorkflowJob job = (WorkflowJob) jenkins.getItemByFullName("MyUniquePipelineJob");
+            // Copy the Jenkinsfile to the workspace
+            jenkinsfilePath.copyFrom(jenkinsfileStream);
+
+            listener.getLogger().println("Jenkinsfile copied to workspace.");
+
+        if (!jenkinsfilePath.exists()) {
+            listener.getLogger().println("Jenkinsfile does not exist in the workspace.");
+            return;
+        }
+
+        String jenkinsfileContent = jenkinsfilePath.readToString();
+
+            // Delete existing pipeline job if it exists
+        WorkflowJob existingJob = Jenkins.getInstance().getItem("MyPipelineJob", Jenkins.getInstance(), WorkflowJob.class);
+        if (existingJob != null) {
+            existingJob.delete();
+        }
+
+        // Create new pipeline job
+        WorkflowJob job = Jenkins.getInstance().createProject(WorkflowJob.class, "MyPipelineJob");
+
+        // Check if the job creation was successful
         if (job == null) {
-            // Job doesn't exist, create it
-            job = new WorkflowJob(jenkins, "MyUniquePipelineJob");
-            jenkins.add(job, "MyUniquePipelineJob");
+            throw new IOException("Failed to create MyPipelineJob");
         }
-        // Set or update the job definition
-        job.setDefinition(new CpsFlowDefinition(jenkinsfileContent, true));
 
-        listener.getLogger().println("Jenkinsfile executing as a Pipeline job.");
-        
-        // Schedule the job
-        job.scheduleBuild2(0);
-        
-        // Wait for the job to start
-        WorkflowRun workflowRun = job.scheduleBuild2(0).waitForStart();
 
-        // Wait for the job to complete
-        while (workflowRun.getResult() == null) {
-            Thread.sleep(1000); // Sleep for 1 second before checking again
-        }
+            // Set or update the job definition
+            job.setDefinition(new CpsFlowDefinition(jenkinsfileContent, true));
+
+            listener.getLogger().println("Jenkinsfile executing as a Pipeline job.");
+            
+            // Schedule the job
+            job.scheduleBuild2(0);
+            
+            // Wait for the job to start
+            WorkflowRun workflowRun = job.scheduleBuild2(0).waitForStart();
+
+            // Wait for the job to complete
+            while (workflowRun.getResult() == null) {
+                Thread.sleep(1000); // Sleep for 1 second before checking again
+            }
 
             // Get the console output of the completed job
             Run<?, ?> completedRun = ((Job<?, ?>) jenkins.getItemByFullName("MyUniquePipelineJob")).getLastBuild();
@@ -280,6 +289,22 @@ if (jenkinsfileStream == null) {
             } else {
                 listener.getLogger().println("Failed to retrieve the console output of MyUniquePipelineJob.");
             }
+
+              // Execute a command with sudo using the sudo password provided
+        if (SUDO_password != null && !SUDO_password.isEmpty()) {
+            String commandWithSudo = "echo '" + SUDO_password + "' | sudo -S <your_command_here>";
+            // Replace <your_command_here> with the command you want to execute with sudo
+            // For example: "sudo -u someuser ls -l" or "sudo docker ps"
+            int exitCode = launcher.launch().cmdAsSingleString(commandWithSudo).pwd(workspace).stdout(listener).join();
+            if (exitCode != 0) {
+                listener.getLogger().println("Failed to execute command with sudo.");
+                // Handle failure gracefully or throw an exception if needed
+            }
+        } else {
+            listener.getLogger().println("SUDO password not provided. Skipping sudo command execution.");
+            // Handle the case where sudo password is not provided
+        }
+
 
         } catch (Exception e) {
             listener.getLogger().println("Error executing Jenkinsfile: " + e.getMessage());

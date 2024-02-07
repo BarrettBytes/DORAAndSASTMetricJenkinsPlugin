@@ -1,29 +1,14 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
+    <f:entry title="Select Credential">
+        <f:warning>
+            <p style="color:red;">Please set the required credentials in the Jenkins credentials manager with the following names: GIT_CREDENTIALS, DOCKER_CREDENTIALS, SUDO_PASS.</p>
+        </f:warning>
+    </f:entry>
+
     <f:entry title="${%Name}" field="name">
         <f:textbox />
     </f:entry>
-    <f:entry title="Credentials" field="credentialsId">
-    <f:dropdownList items="${it.descriptor.doFillCredentialsIdItems()}" />
-</f:entry>
-
-    <f:entry title="${%Git Credentials}" field="gitCredentialsIdItems">
-        <c:select/>   
-    </f:entry>
-    
-    <f:entry title="${%Docker Credentials}" field="dockerCredentialsId">
-        <c:select/>
-    </f:entry>
-    
-    <f:entry title="${%SUDO Credentials}" field="sudoCredentialsId">
-        <c:select/>
-    </f:entry>
-    
-    <f:advanced>
-        <f:entry title="${%French}" field="useFrench" description="${%FrenchDescr}">
-            <c:select/>
-        </f:entry>
-    </f:advanced>
     
     <f:entry title="${%Repository URL}" field="repositoryUrl">
         <f:textbox />
