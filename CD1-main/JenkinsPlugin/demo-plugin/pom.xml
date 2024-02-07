@@ -1,92 +1,162 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <!-- Parent POM for Jenkins plugins -->
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
         <version>4.73</version>
         <relativePath />
     </parent>
+    
+    <!-- Project information -->
     <groupId>io.jenkins.plugins</groupId>
     <artifactId>demo</artifactId>
     <version>${revision}${changelist}</version>
     <packaging>hpi</packaging>
     <name>TODO Plugin</name>
     <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
+    
+    <!-- License information -->
     <licenses>
         <license>
             <name>MIT License</name>
             <url>https://opensource.org/license/mit/</url>
         </license>
     </licenses>
+    
+    <!-- Source code management configuration -->
     <scm child.scm.connection.inherit.append.path="false" child.scm.developerConnection.inherit.append.path="false" child.scm.url.inherit.append.path="false">
         <connection>scm:git:https://github.com/${gitHubRepo}</connection>
         <developerConnection>scm:git:https://github.com/${gitHubRepo}</developerConnection>
         <tag>${scmTag}</tag>
         <url>https://github.com/${gitHubRepo}</url>
     </scm>
+    
+    <!-- Project properties -->
     <properties>
         <revision>1.0</revision>
         <changelist>-SNAPSHOT</changelist>
-        <jenkins.version>2.387.3</jenkins.version>
+        <jenkins.version>2.443</jenkins.version>
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
         <spotless.check.skip>false</spotless.check.skip>
     </properties>
-    <dependencies>
+    
     <!-- Jenkins Git plugin dependency -->
+    <dependencies>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>git</artifactId>
+            <version>4.10.0</version> <!-- Dependency for Git integration -->
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.errorprone</groupId>
+            <artifactId>error_prone_annotations</artifactId>
+            <version>2.23.0</version>
+        </dependency>
+
+        <!-- Jenkins Core dependency (provided scope) -->
+        <dependency>
+            <groupId>org.jenkins-ci.main</groupId>
+            <artifactId>jenkins-core</artifactId>
+            <version>2.441</version>
+            <scope>provided</scope>
+        </dependency>
+
     <dependency>
+  <groupId>org.kohsuke.stapler</groupId>
+  <artifactId>stapler</artifactId>
+  <version>1.263</version>
+</dependency>
+
+ <dependency>
+    <groupId>org.jenkins-ci.plugins.workflow</groupId>
+    <artifactId>workflow-step-api</artifactId>
+    <version>657.v03b_e8115821b_</version>
+</dependency>
+
+   <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>credentials</artifactId>
+            <version>1.8.3</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>matrix-auth</artifactId>
+            <version>1.0.2</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
         <groupId>org.jenkins-ci.plugins</groupId>
-        <artifactId>git</artifactId>
-        <version>4.10.0</version> <!-- Adjust version as needed -->
+        <artifactId>credentials-binding</artifactId>
+        <version>1.27</version>
     </dependency>
 
-    <!-- Jenkins Credentials Plugin dependency -->
-    <dependency>
-        <groupId>org.jenkins-ci.plugins</groupId>
-        <artifactId>credentials</artifactId>
-        <version>1309.v8835d63eb_d8a_</version> <!-- Adjust version as needed -->
-    </dependency>
-    <dependency>
-        <groupId>org.jenkins-ci.plugins</groupId>
-        <artifactId>structs</artifactId>
-        <version>324.va_f5d6774f3a_d</version> <!-- Add the appropriate version here -->
-    </dependency>
-    <dependency>
-        <groupId>org.jenkins-ci.plugins.workflow</groupId>
-        <artifactId>workflow-basic-steps</artifactId>
-        <version>2.23</version> <!-- Add the appropriate version here -->
-        <scope>test</scope>
-    </dependency>
-    <dependency>
-        <groupId>org.jenkins-ci.plugins.workflow</groupId>
-        <artifactId>workflow-cps</artifactId>
-        <version>2.41</version>
-    </dependency>
-    <dependency>
-        <groupId>org.jenkins-ci.plugins.workflow</groupId>
-        <artifactId>workflow-job</artifactId>
-        <version>2.15</version>
-    </dependency>
-    <dependency>
-        <groupId>org.jenkins-ci.plugins.workflow</groupId>
-        <artifactId>workflow-durable-task-step</artifactId>
-        <version>2.39</version> <!-- Add the appropriate version here -->
-        <scope>test</scope>
-    </dependency>
-</dependencies>
+        <!-- Jenkins Credentials Plugin dependency -->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>credentials</artifactId>
+            <version>1311.vcf0a_900b_37c2</version> <!-- Dependency for managing credentials -->
+        </dependency>
+        
+        <!-- Jenkins Structs Plugin dependency -->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>structs</artifactId>
+            <version>325.vcb_307d2a_2782</version>
+        </dependency>
+        
+        <!-- Jenkins Workflow Basic Steps dependency (for testing) -->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-basic-steps</artifactId>
+            <version>2.23</version>
+            <scope>test</scope>
+        </dependency>
+        
+        <!-- Jenkins Workflow CPS dependency -->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-cps</artifactId>
+            <version>2.41</version>
+        </dependency>
+        
+        <!-- Jenkins Workflow Job dependency -->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-job</artifactId>
+            <version>2.15</version>
+        </dependency>
+        
+        <!-- Jenkins Workflow Durable Task Step dependency (for testing) -->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-durable-task-step</artifactId>
+            <version>2.39</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
+    <!-- Jenkins Plugin Repository -->
     <repositories>
         <repository>
             <id>repo.jenkins-ci.org</id>
             <url>https://repo.jenkins-ci.org/public/</url>
         </repository>
     </repositories>
+    
+    <!-- Jenkins Plugin Repository for plugins -->
     <pluginRepositories>
         <pluginRepository>
             <id>repo.jenkins-ci.org</id>
             <url>https://repo.jenkins-ci.org/public/</url>
         </pluginRepository>
     </pluginRepositories>
+    
+    <!-- Maven Resources Plugin configuration for copying resources -->
     <build>
         <plugins>
             <plugin>

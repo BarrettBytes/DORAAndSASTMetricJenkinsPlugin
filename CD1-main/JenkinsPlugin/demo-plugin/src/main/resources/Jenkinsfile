@@ -62,7 +62,7 @@ pipeline {
             }
         }
 
-        stage('Setup Environment') {
+         stage('Setup Environment') {
             steps {
                 script {
                     // Setup the environment based on the operating system
@@ -71,21 +71,21 @@ pipeline {
                             if (sh(script: 'docker --version', returnStatus: true) != 0) {
                                 echo "Docker is not installed. Installing Docker using apt."
                                 sh '''
-                                    sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
+                                    echo ${SUDO_PASSWORD} | sudo -S apt install -y apt-transport-https ca-certificates curl software-properties-common
                                     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
                                     sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-                                    sudo apt update
-                                    sudo apt install -y docker-ce
-                                    sudo service docker start
+                                    echo ${SUDO_PASSWORD} | sudo -S apt update
+                                    echo ${SUDO_PASSWORD} | sudo -S apt install -y docker-ce
+                                    echo ${SUDO_PASSWORD} | sudo -S service docker start
                                 '''
                             }
                         } else if (sh(script: 'command -v yum', returnStatus: true) == 0) {
                             echo "Amazon Linux detected. Installing Docker using yum."
                             sh '''
-                                sudo yum update -y
-                                sudo yum install -y docker
-                                sudo systemctl start docker
-                                sudo systemctl enable docker
+                                echo ${SUDO_PASSWORD} | sudo -S yum update -y
+                                echo ${SUDO_PASSWORD} | sudo -S yum install -y docker
+                                echo ${SUDO_PASSWORD} | sudo -S systemctl start docker
+                                echo ${SUDO_PASSWORD} | sudo -S systemctl enable docker
                             '''
                         } else {
                             echo "Unsupported OS. Cannot install Docker."
@@ -115,7 +115,7 @@ pipeline {
             }
         }
 
-        stage('Configure Docker Builder') {
+ stage('Configure Docker Builder') {
             steps {
                 script {
                     // Configuration for Docker builder
