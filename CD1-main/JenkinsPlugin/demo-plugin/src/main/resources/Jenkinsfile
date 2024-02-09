@@ -12,6 +12,7 @@ pipeline {
     environment {
         // Extract the IP or hostname from the JENKINS_URL
         JENKINS_HOST = new URL(env.JENKINS_URL).getHost()
+        SUDO_PASS = credentials('SUDO_PASS')
     }
 
     stages {
@@ -43,13 +44,17 @@ pipeline {
                         if (osType == "Darwin") {
                             timeout(time: 1, unit: 'MINUTES') {
                                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                                    sh 'brew update'
+                                    withCredentials([usernamePassword(credentialsId: 'SUDO_PASS', passwordVariable: 'SUDO_PASS', usernameVariable: 'SUDO_USER')]) {
+                                        sh 'echo ${SUDO_PASS} | sudo -S brew update'
+                                    }
                                 }
                             }
                         } else if (sh(script: 'command -v apt', returnStatus: true) == 0) {
                             timeout(time: 1, unit: 'MINUTES') {
                                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                                    sh 'sudo apt update'
+                                    withCredentials([usernamePassword(credentialsId: 'SUDO_PASS', passwordVariable: 'SUDO_PASS', usernameVariable: 'SUDO_USER')]) {
+                                        sh 'echo ${SUDO_PASS} | sudo -S apt update'
+                                    }
                                 }
                             }
                         } else {
@@ -70,23 +75,27 @@ pipeline {
                         if (sh(script: 'command -v apt', returnStatus: true) == 0) {
                             if (sh(script: 'docker --version', returnStatus: true) != 0) {
                                 echo "Docker is not installed. Installing Docker using apt."
-                                sh '''
-                                    echo ${SUDO_PASSWORD} | sudo -S apt install -y apt-transport-https ca-certificates curl software-properties-common
-                                    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-                                    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-                                    echo ${SUDO_PASSWORD} | sudo -S apt update
-                                    echo ${SUDO_PASSWORD} | sudo -S apt install -y docker-ce
-                                    echo ${SUDO_PASSWORD} | sudo -S service docker start
-                                '''
+                                withCredentials([usernamePassword(credentialsId: 'SUDO_PASS', passwordVariable: 'SUDO_PASS', usernameVariable: 'SUDO_USER')]) {
+                                    sh '''
+                                        echo ${SUDO_PASS} | sudo -S apt install -y apt-transport-https ca-certificates curl software-properties-common
+                                        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+                                        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+                                        echo ${SUDO_PASS} | sudo -S apt update
+                                        echo ${SUDO_PASS} | sudo -S apt install -y docker-ce
+                                        echo ${SUDO_PASS} | sudo -S service docker start
+                                    '''
+                                }
                             }
                         } else if (sh(script: 'command -v yum', returnStatus: true) == 0) {
                             echo "Amazon Linux detected. Installing Docker using yum."
-                            sh '''
-                                echo ${SUDO_PASSWORD} | sudo -S yum update -y
-                                echo ${SUDO_PASSWORD} | sudo -S yum install -y docker
-                                echo ${SUDO_PASSWORD} | sudo -S systemctl start docker
-                                echo ${SUDO_PASSWORD} | sudo -S systemctl enable docker
-                            '''
+                            withCredentials([usernamePassword(credentialsId: 'SUDO_PASS', passwordVariable: 'SUDO_PASS', usernameVariable: 'SUDO_USER')]) {
+                                sh '''
+                                    echo ${SUDO_PASS} | sudo -S yum update -y
+                                    echo ${SUDO_PASS} | sudo -S yum install -y docker
+                                    echo ${SUDO_PASS} | sudo -S systemctl start docker
+                                    echo ${SUDO_PASS} | sudo -S systemctl enable docker
+                                '''
+                            }
                         } else {
                             echo "Unsupported OS. Cannot install Docker."
                         }
@@ -137,7 +146,9 @@ pipeline {
                             sleep 10  // Give Docker a few seconds to start
                         } else {
                             echo "Docker is not running. Attempting to start Docker."
-                            sh 'sudo dockerd &'
+                            withCredentials([usernamePassword(credentialsId: 'SUDO_PASS', passwordVariable: 'SUDO_PASS', usernameVariable: 'SUDO_USER')]) {
+                                sh 'echo ${SUDO_PASS} | sudo dockerd &'
+                            }
                             sleep 10  // Give Docker a few seconds to start
                         }
                     }
@@ -151,8 +162,10 @@ pipeline {
                     // Setup Docker environment for Python
                     def osType = sh(script: 'uname', returnStdout: true).trim()
                     if (osType != "Darwin") {
-                        sh 'sudo usermod -aG docker $USER'
-                        sh 'sudo service docker restart'
+                        withCredentials([usernamePassword(credentialsId: 'SUDO_PASS', passwordVariable: 'SUDO_PASS', usernameVariable: 'SUDO_USER')]) {
+                            sh 'echo ${SUDO_PASS} | sudo usermod -aG docker $USER'
+                            sh 'echo ${SUDO_PASS} | sudo service docker restart'
+                        }
                     }
                     if (osType == "Darwin") {
                         def pythonCheck = sh(script: 'python3 --version', returnStatus: true)
@@ -222,11 +235,13 @@ pipeline {
                             RUN /bin/bash -c "source /workspace/PythonPlantsVsZombies/myenv/bin/activate && pip install -r /workspace/PythonPlantsVsZombies/Requirements.txt"
                         """
                         writeFile file: 'Dockerfile', text: dockerfileContent
-                        sh 'echo $SUDO_PASS | sudo -S docker build -t custom-python-snyk-image -f Dockerfile .'
+                        withCredentials([usernamePassword(credentialsId: 'SUDO_PASS', passwordVariable: 'SUDO_PASS', usernameVariable: 'SUDO_USER')]) {
+                            sh 'echo $SUDO_PASS | sudo -S docker build -t custom-python-snyk-image -f Dockerfile .'
+                        }
+                    }
                     }
                 }
             }
-        }
 
         stage('Check PythonPlantsVsZombies in Docker') {
             steps {

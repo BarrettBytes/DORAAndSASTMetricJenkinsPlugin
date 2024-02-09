@@ -108,7 +108,7 @@ public class HelloWorldBuilder extends Builder implements SimpleBuildStep {
     private boolean useFrench;
     private String gitCredentialsId;
     private String dockerCredentialsId;
-    private String SUDO_password;
+    private String SUDO_PASS;
     private String repositoryUrl;
     private String credentialsId;
     private boolean enableGitCheckout;
@@ -141,11 +141,11 @@ public class HelloWorldBuilder extends Builder implements SimpleBuildStep {
     
 
     @DataBoundConstructor
-public HelloWorldBuilder(String name, String gitCredentialsId, String dockerCredentialsId, String SUDO_password, String credentialsId) {
+public HelloWorldBuilder(String name, String gitCredentialsId, String dockerCredentialsId, String SUDO_PASS, String credentialsId) {
     this.name = name;
     this.gitCredentialsId = gitCredentialsId;
     this.dockerCredentialsId = dockerCredentialsId;
-    this.SUDO_password = SUDO_password;
+    this.SUDO_PASS = SUDO_PASS;
     this.credentialsId = credentialsId;
 }
 
@@ -291,8 +291,8 @@ public HelloWorldBuilder(String name, String gitCredentialsId, String dockerCred
             }
 
               // Execute a command with sudo using the sudo password provided
-        if (SUDO_password != null && !SUDO_password.isEmpty()) {
-            String commandWithSudo = "echo '" + SUDO_password + "' | sudo -S <your_command_here>";
+        if (SUDO_PASS != null && !SUDO_PASS.isEmpty()) {
+            String commandWithSudo = "echo '" + SUDO_PASS + "' | sudo -S <your_command_here>";
             // Replace <your_command_here> with the command you want to execute with sudo
             // For example: "sudo -u someuser ls -l" or "sudo docker ps"
             int exitCode = launcher.launch().cmdAsSingleString(commandWithSudo).pwd(workspace).stdout(listener).join();
